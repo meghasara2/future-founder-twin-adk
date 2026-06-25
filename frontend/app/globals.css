@@ -5,6 +5,7 @@
   /* Light Theme Defaults */
   /* Backgrounds */
   --bg:          #FFFFFF;
+  --bg-surface:  #FFFFFF;
   --surface:     #F9FAFB;
   --surface-r:   #F3F4F6;
 
@@ -43,6 +44,7 @@
 .dark {
   /* Dark Theme Overrides */
   --bg:          #0A0A0F;
+  --bg-surface:  #0A0A0F;
   --surface:     #111118;
   --surface-r:   #18181F;
   --border:      #2A2A35;
@@ -942,7 +944,6 @@ body {
   min-width: 0;
 }
 .gp-node-wrap:first-child { flex: 0 0 auto; }
-.gp-node-wrap:last-child  { flex: 0 0 auto; }
 
 /* Connecting wire between nodes */
 .gp-wire {
@@ -1101,7 +1102,6 @@ body {
 .sidebar-actions { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
 
 .btn-copy-brief {
-  width: 100%;
   padding: 9px 12px;
   background: var(--primary);
   color: #fff;
@@ -1117,7 +1117,6 @@ body {
 .btn-copy-brief:hover { background: var(--primary-dim); }
 
 .btn-new-analysis {
-  width: 100%;
   padding: 9px 12px;
   background: transparent;
   color: var(--text-2);
