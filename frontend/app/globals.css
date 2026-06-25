@@ -1933,154 +1933,161 @@ body {
 .debate-architect { flex-direction: row-reverse; }
 .debate-architect .debate-content-bubble { border-top-right-radius: 2px; border-top-left-radius: 8px; background: color-mix(in srgb, var(--primary) 5%, var(--bg-surface)); border-color: color-mix(in srgb, var(--primary) 20%, transparent); }
 .debate-architect .debate-avatar { border-color: var(--primary); color: var(--primary); }
-.debate-architect .debate-role { color: var(--primary); text-align: right; }/ *    % % %  T A R O T   C A R D S   S I M U L A T I O N    % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %  * / 
- . s i m - t a r o t - g r i d   { 
-     d i s p l a y :   g r i d ; 
-     g r i d - t e m p l a t e - c o l u m n s :   r e p e a t ( 3 ,   1 f r ) ; 
-     g a p :   2 0 p x ; 
-     p e r s p e c t i v e :   1 0 0 0 p x ; 
-     m a r g i n - t o p :   1 6 p x ; 
- } 
- 
- . t a r o t - c a r d - c o n t a i n e r   { 
-     w i d t h :   1 0 0 % ; 
-     a s p e c t - r a t i o :   0 . 7 ; 
-     c u r s o r :   p o i n t e r ; 
-     p o s i t i o n :   r e l a t i v e ; 
-     b o r d e r - r a d i u s :   1 2 p x ; 
-     t r a n s f o r m - s t y l e :   p r e s e r v e - 3 d ; 
-     t r a n s i t i o n :   t r a n s f o r m   0 . 6 s   c u b i c - b e z i e r ( 0 . 3 4 ,   1 . 4 6 ,   0 . 6 4 ,   1 ) ; 
- } 
- 
- . t a r o t - c a r d - c o n t a i n e r . f l i p p e d   { 
-     t r a n s f o r m :   r o t a t e Y ( 1 8 0 d e g ) ; 
- } 
- 
- . t a r o t - f a c e   { 
-     p o s i t i o n :   a b s o l u t e ; 
-     i n s e t :   0 ; 
-     b a c k f a c e - v i s i b i l i t y :   h i d d e n ; 
-     b o r d e r - r a d i u s :   1 2 p x ; 
-     b a c k g r o u n d :   v a r ( - - b g - s u r f a c e ) ; 
-     b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r ) ; 
-     b o x - s h a d o w :   0   8 p x   2 4 p x   r g b a ( 0 , 0 , 0 , 0 . 2 ) ; 
-     d i s p l a y :   f l e x ; 
-     f l e x - d i r e c t i o n :   c o l u m n ; 
-     o v e r f l o w :   h i d d e n ; 
-     t r a n s i t i o n :   b o x - s h a d o w   0 . 3 s   e a s e ,   b o r d e r - c o l o r   0 . 3 s   e a s e ; 
- } 
- 
- . t a r o t - c a r d - c o n t a i n e r : h o v e r   . t a r o t - f a c e   { 
-     b o x - s h a d o w :   0   1 2 p x   3 2 p x   r g b a ( 0 , 0 , 0 , 0 . 3 ) ; 
- } 
- 
- . t a r o t - f r o n t   { 
-     p a d d i n g :   1 2 p x ; 
- } 
- 
- . t a r o t - f r o n t - i n n e r   { 
-     f l e x :   1 ; 
-     b o r d e r :   1 p x   d a s h e d   v a r ( - - b o r d e r ) ; 
-     b o r d e r - r a d i u s :   8 p x ; 
-     d i s p l a y :   f l e x ; 
-     f l e x - d i r e c t i o n :   c o l u m n ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     j u s t i f y - c o n t e n t :   c e n t e r ; 
-     t e x t - a l i g n :   c e n t e r ; 
-     p a d d i n g :   2 4 p x ; 
-     p o s i t i o n :   r e l a t i v e ; 
- } 
- 
- . t a r o t - i c o n - w r a p p e r   { 
-     m a r g i n - b o t t o m :   2 4 p x ; 
-     f i l t e r :   d r o p - s h a d o w ( 0   0   1 2 p x   c u r r e n t C o l o r ) ; 
- } 
- 
- . t a r o t - t i t l e   { 
-     f o n t - f a m i l y :   v a r ( - - f o n t - d ) ; 
-     f o n t - s i z e :   2 0 p x ; 
-     f o n t - w e i g h t :   7 0 0 ; 
-     c o l o r :   v a r ( - - t e x t - 1 ) ; 
-     t e x t - t r a n s f o r m :   u p p e r c a s e ; 
-     l e t t e r - s p a c i n g :   0 . 0 5 e m ; 
-     m a r g i n - b o t t o m :   1 6 p x ; 
- } 
- 
- . t a r o t - p r o b   { 
-     d i s p l a y :   f l e x ; 
-     f l e x - d i r e c t i o n :   c o l u m n ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     g a p :   4 p x ; 
- } 
- 
- . t a r o t - p r o b - l a b e l   { 
-     f o n t - s i z e :   1 1 p x ; 
-     t e x t - t r a n s f o r m :   u p p e r c a s e ; 
-     c o l o r :   v a r ( - - t e x t - d i m ) ; 
-     l e t t e r - s p a c i n g :   0 . 1 e m ; 
- } 
- 
- . t a r o t - p r o b - v a l   { 
-     f o n t - f a m i l y :   v a r ( - - f o n t - d ) ; 
-     f o n t - s i z e :   3 2 p x ; 
-     f o n t - w e i g h t :   8 0 0 ; 
- } 
- 
- . t a r o t - h i n t   { 
-     p o s i t i o n :   a b s o l u t e ; 
-     b o t t o m :   2 4 p x ; 
-     f o n t - s i z e :   1 1 p x ; 
-     c o l o r :   v a r ( - - t e x t - d i m ) ; 
-     d i s p l a y :   f l e x ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     g a p :   4 p x ; 
-     o p a c i t y :   0 . 7 ; 
- } 
- 
- . t a r o t - b a c k   { 
-     t r a n s f o r m :   r o t a t e Y ( 1 8 0 d e g ) ; 
-     b o r d e r - w i d t h :   2 p x ; 
- } 
- 
- . t a r o t - b a c k - h e a d e r   { 
-     p a d d i n g :   1 6 p x ; 
-     b a c k g r o u n d :   c o l o r - m i x ( i n   s r g b ,   c u r r e n t C o l o r   1 0 % ,   v a r ( - - b g - s u r f a c e ) ) ; 
-     b o r d e r - b o t t o m :   1 p x   s o l i d   v a r ( - - b o r d e r ) ; 
-     f o n t - f a m i l y :   v a r ( - - f o n t - d ) ; 
-     f o n t - s i z e :   1 4 p x ; 
-     f o n t - w e i g h t :   7 0 0 ; 
-     t e x t - t r a n s f o r m :   u p p e r c a s e ; 
-     d i s p l a y :   f l e x ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     g a p :   8 p x ; 
- } 
- 
- . t a r o t - b a c k - c o n t e n t   { 
-     f l e x :   1 ; 
-     p a d d i n g :   1 6 p x ; 
-     o v e r f l o w - y :   a u t o ; 
- } 
- 
- . t a r o t - b a c k - c o n t e n t : : - w e b k i t - s c r o l l b a r   { 
-     w i d t h :   4 p x ; 
- } 
- . t a r o t - b a c k - c o n t e n t : : - w e b k i t - s c r o l l b a r - t h u m b   { 
-     b a c k g r o u n d :   v a r ( - - b o r d e r ) ; 
-     b o r d e r - r a d i u s :   4 p x ; 
- } 
- 
- . m i l e s t o n e s . s m a l l   . m i l e s t o n e   { 
-     m a r g i n - b o t t o m :   1 6 p x ; 
- } 
- . m i l e s t o n e s . s m a l l   . m i l e s t o n e - m o n t h   { 
-     f o n t - s i z e :   1 2 p x ; 
-     m i n - w i d t h :   6 0 p x ; 
- } 
- . m i l e s t o n e s . s m a l l   . m i l e s t o n e - e v e n t   { 
-     f o n t - s i z e :   1 2 p x ; 
- } 
- . s i m - t e x t . s m a l l   { 
-     f o n t - s i z e :   1 2 p x ; 
- } 
-  
- 
+.debate-architect .debate-role { color: var(--primary); text-align: right; }
+
+/* ─── TAROT CARDS SIMULATION ───────────────────────────────────────────────────── */
+.sim-tarot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  perspective: 1000px;
+  margin-top: 16px;
+}
+
+.tarot-card-container {
+  width: 100%;
+  aspect-ratio: 0.7;
+  cursor: pointer;
+  position: relative;
+  border-radius: 12px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.46, 0.64, 1);
+}
+
+.tarot-card-container.flipped {
+  transform: rotateY(180deg);
+}
+
+.tarot-card {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.46, 0.64, 1);
+}
+
+.tarot-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.tarot-card-container:hover .tarot-face {
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+
+.tarot-front {
+  padding: 12px;
+}
+
+.tarot-front-inner {
+  flex: 1;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  position: relative;
+}
+
+.tarot-icon-wrapper {
+  margin-bottom: 24px;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+.tarot-title {
+  font-family: var(--font-d);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.tarot-prob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tarot-prob-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.tarot-prob-val {
+  font-family: var(--font-d);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.tarot-hint {
+  position: absolute;
+  bottom: 24px;
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+}
+
+.tarot-back {
+  transform: rotateY(180deg);
+  border-width: 2px;
+}
+
+.tarot-back-header {
+  padding: 16px;
+  background: color-mix(in srgb, currentColor 10%, var(--bg-surface));
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-d);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tarot-back-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.tarot-back-content::-webkit-scrollbar {
+  width: 4px;
+}
+.tarot-back-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.milestones.small .milestone {
+  margin-bottom: 16px;
+}
+.milestones.small .milestone-month {
+  font-size: 12px;
+  min-width: 60px;
+}
+.milestones.small .milestone-event {
+  font-size: 12px;
+}
+.sim-text.small {
+  font-size: 12px;
+}
