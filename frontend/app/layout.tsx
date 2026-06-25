@@ -35,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       data-scroll-behavior="smooth"
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
       <head>
         <script
