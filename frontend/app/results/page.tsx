@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import GlowingPipeline from '@/components/GlowingPipeline';
 import ScoreCard from '@/components/ScoreCard';
 import FounderFitMatrix from '@/components/FounderFitMatrix';
@@ -68,7 +69,7 @@ function SkeletonCard({ icon, title, badge }: { icon: string; title: string; bad
 function ResultText({ text }: { text: string }) {
   return (
     <div className="result-text markdown-body">
-      <ReactMarkdown>{text}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
     </div>
   );
 }

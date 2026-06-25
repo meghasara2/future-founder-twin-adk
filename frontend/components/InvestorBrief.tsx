@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function InvestorBrief({ brief }: { brief: string }) {
   const [copied, setCopied] = useState(false);
@@ -20,7 +22,9 @@ export default function InvestorBrief({ brief }: { brief: string }) {
 
   return (
     <div>
-      <pre className="brief-pre">{brief}</pre>
+      <div className="brief-content markdown-body">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{brief}</ReactMarkdown>
+      </div>
       <div className="brief-actions">
         <button onClick={copy} className={`btn-copy ${copied ? 'copied' : ''}`} id="copy-investor-brief">
           {copied ? (

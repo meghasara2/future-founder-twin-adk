@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface SimulationCardsProps {
   simulationText: string;
@@ -46,17 +48,12 @@ export default function SimulationCards({ simulationText, verdict }: SimulationC
   const milestones = parseMilestones(content[activeTab]);
   const vc = verdict ? VERDICT_CONFIG[verdict] : null;
 
-  // Extract reason text
-  const verdictReason = simulationText.match(/VERDICT[^:]*:.*?[""]([^""]+)[""]/)?.[1] ||
-    simulationText.match(/(?:PURSUE|PIVOT|PAUSE)[^.]*\.\s*[""]?([^""]{20,150})/)?.[1] || '';
-
   return (
     <div className="simulation-section">
       {vc && (
         <div className="verdict-row">
           <div className="verdict-eyebrow">Verdict</div>
           <div className="verdict-word" style={{ color: vc.color }}>{vc.label}</div>
-          {verdictReason && <p className="verdict-reason">"{verdictReason}"</p>}
         </div>
       )}
 
@@ -80,7 +77,11 @@ export default function SimulationCards({ simulationText, verdict }: SimulationC
           ))}
         </div>
       ) : (
-        <p className="sim-text">{content[activeTab] || simulationText.slice(0, 600)}</p>
+        <div className="sim-text markdown-body">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {content[activeTab] || simulationText.slice(0, 600)}
+          </ReactMarkdown>
+        </div>
       )}
     </div>
   );
