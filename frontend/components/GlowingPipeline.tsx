@@ -1,20 +1,11 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import { AgentName, PipelineStatus, AGENT_DISPLAY_NAMES, AGENT_DESCRIPTIONS } from '@/lib/types';
 
 const ORDER: AgentName[] = [
   'FounderProfiler', 'MarketDiscovery', 'MVPArchitect', 'RiskCritic',
   'MVPArchitectRefined', 'EvaluationAgent', 'FutureSimulator',
 ];
-
-const AGENT_ICONS: Record<AgentName, string> = {
-  FounderProfiler:    'person',
-  MarketDiscovery:    'search',
-  MVPArchitect:       'build',
-  RiskCritic:         'warning',
-  MVPArchitectRefined:'edit',
-  EvaluationAgent:    'analytics',
-  FutureSimulator:    'rocket',
-};
 
 const AGENT_EMOJI: Record<AgentName, string> = {
   FounderProfiler:    '🧬',
@@ -33,48 +24,93 @@ interface GlowingPipelineProps {
 }
 
 export default function GlowingPipeline({ pipelineStatus, liveThought, activeAgent }: GlowingPipelineProps) {
-  // Find the index of the active agent so we can position the thought bubble
+  const trackRef = useRef<HTMLDivElement>(null);
+  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [botStyle, setBotStyle] = useState<React.CSSProperties>({ opacity: 0 });
+  const [facingRight, setFacingRight] = useState(true);
+  const prevIdxRef = useRef(-1);
+
+  // Recompute bot position whenever activeAgent changes
+  useEffect(() => {
+    if (!activeAgent || !trackRef.current) {
+      setBotStyle({ opacity: 0 });
+      return;
+    }
+    const targetIdx = ORDER.indexOf(activeAgent);
+    if (targetIdx < 0) return;
+
+    const nodeEl = nodeRefs.current[targetIdx];
+    const trackEl = trackRef.current;
+    if (!nodeEl || !trackEl) return;
+
+    const trackRect = trackEl.getBoundingClientRect();
+    const nodeRect = nodeEl.getBoundingClientRect();
+    const center = nodeRect.left + nodeRect.width / 2 - trackRect.left;
+
+    // Determine which direction the bot is running
+    setFacingRight(targetIdx >= prevIdxRef.current);
+    prevIdxRef.current = targetIdx;
+
+    setBotStyle({
+      opacity: 1,
+      transform: `translateX(${center}px) translateX(-50%)`,
+    });
+  }, [activeAgent]);
+
   const activeIdx = activeAgent ? ORDER.indexOf(activeAgent) : -1;
 
   return (
     <div className="gp-wrapper">
-      {/* Thought bubble */}
+      {/* Thought bubble — shown while any agent is active */}
       {activeAgent && (
-        <div className="gp-thought-bubble" style={{ '--active-idx': activeIdx, '--total': ORDER.length } as React.CSSProperties}>
+        <div className="gp-thought-bubble">
           <div className="gp-thought-header">
             <span className="gp-thought-agent">{AGENT_DISPLAY_NAMES[activeAgent]}</span>
             <span className="gp-thought-pulse" />
           </div>
           <div className="gp-thought-body">
             {liveThought
-              ? liveThought.slice(-300)   // show last 300 chars so it scrolls nicely
+              ? liveThought.slice(-300)
               : AGENT_DESCRIPTIONS[activeAgent]
             }
           </div>
-          <div className="gp-thought-tail" />
         </div>
       )}
 
       {/* Pipeline track */}
-      <div className="gp-track">
+      <div className="gp-track" ref={trackRef}>
+        {/* Running bot sprite — absolutely positioned, slides between nodes */}
+        <div
+          className={`gp-bot ${activeAgent ? 'gp-bot-visible' : ''}`}
+          style={botStyle}
+          aria-hidden="true"
+        >
+          <span className={`gp-bot-sprite ${facingRight ? '' : 'gp-bot-flip'}`}>🤖</span>
+          <span className="gp-bot-shadow" />
+        </div>
+
         {ORDER.map((name, idx) => {
           const status = pipelineStatus[name];
           const isActive = name === activeAgent;
-          const prevDone = idx > 0 && pipelineStatus[ORDER[idx - 1]] === 'done';
+          // Wire is "lit" when both this node and the previous are done
+          const wireLit = idx > 0 && pipelineStatus[ORDER[idx - 1]] === 'done' && status === 'done';
 
           return (
             <div key={name} className="gp-node-wrap">
-              {/* connector wire */}
+              {/* Connector wire */}
               {idx > 0 && (
-                <div className={`gp-wire ${prevDone ? 'active' : ''}`} />
+                <div className={`gp-wire ${wireLit ? 'gp-wire-done' : ''} ${isActive ? 'gp-wire-active' : ''}`} />
               )}
 
               <div className="gp-node-col">
-                <div className={['gp-node', `gp-${status}`, isActive ? 'gp-active' : ''].filter(Boolean).join(' ')}>
+                <div
+                  ref={el => { nodeRefs.current[idx] = el; }}
+                  className={['gp-node', `gp-${status}`, isActive ? 'gp-active' : ''].filter(Boolean).join(' ')}
+                >
                   <span className="gp-emoji">{AGENT_EMOJI[name]}</span>
                   {isActive && <span className="gp-ring" />}
                 </div>
-                <span className={`gp-label ${isActive ? 'active' : ''}`}>
+                <span className={`gp-label ${isActive ? 'gp-label-active' : ''}`}>
                   {AGENT_DISPLAY_NAMES[name]}
                 </span>
               </div>
