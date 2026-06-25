@@ -88,8 +88,22 @@ export default function InterviewPage() {
     const next = [...answers];
     next[currentQ] = current;
     setAnswers(next);
-    setCurrent('');
+    setCurrent(next[currentQ + 1] || '');
     setCurrentQ(q => q + 1);
+  };
+
+  const handleEdit = (index: number) => {
+    const next = [...answers];
+    next[currentQ] = current; // Save current progress
+    setAnswers(next);
+    setCurrent(next[index] || '');
+    setCurrentQ(index);
+  };
+
+  const handleLoadPreset = (presetAnswers: string[]) => {
+    setAnswers(presetAnswers);
+    setCurrent(presetAnswers[0] || '');
+    setCurrentQ(0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -149,14 +163,14 @@ export default function InterviewPage() {
         {currentQ === 0 && current === '' && (
           <div className="demo-presets-card">
             <h3 style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 12, fontFamily: 'var(--font-m)' }}>
-              Kaggle Judges: Quick Test Presets
+              Insert a Template:
             </h3>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {DEMO_PRESETS.map((p, i) => (
                 <button
                   key={i}
                   className="btn-preset"
-                  onClick={() => handleAnalyze(p.answers)}
+                  onClick={() => handleLoadPreset(p.answers)}
                   disabled={submitting}
                 >
                   {p.label}
@@ -180,7 +194,12 @@ export default function InterviewPage() {
             {answers.slice(0, currentQ).map((ans, i) =>
               ans ? (
                 <div key={i} className="completed-qa">
-                  <div className="cqa-q">Q{i + 1} — {QUESTIONS[i].label}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div className="cqa-q">Q{i + 1} — {QUESTIONS[i].label}</div>
+                    <button onClick={() => handleEdit(i)} className="btn-edit" title="Edit this answer">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                  </div>
                   <div className="cqa-a">{ans}</div>
                 </div>
               ) : null

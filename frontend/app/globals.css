@@ -626,6 +626,24 @@ body {
   background: color-mix(in srgb, var(--primary) 10%, var(--bg-surface));
 }
 
+/* Edit Button */
+.btn-edit {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--t-fast);
+}
+.btn-edit:hover {
+  background: var(--bg);
+  color: var(--primary);
+}
+
 /* Progress bar */
 .progress-bar-wrapper {
   display: flex;
