@@ -24,22 +24,29 @@ interface GlowingPipelineProps {
   pipelineStatus: PipelineStatus;
   liveThought: string;
   activeAgent: AgentName | null;
+  selectedAgent?: AgentName | null;
+  isDone?: boolean;
+  onSelectAgent?: (agent: AgentName) => void;
 }
 
-export default function GlowingPipeline({ pipelineStatus, liveThought, activeAgent }: GlowingPipelineProps) {
+export default function GlowingPipeline({ 
+  pipelineStatus, liveThought, activeAgent, selectedAgent, isDone, onSelectAgent 
+}: GlowingPipelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [botStyle, setBotStyle] = useState<React.CSSProperties>({ opacity: 0 });
   const [facingRight, setFacingRight] = useState(true);
   const prevIdxRef = useRef(-1);
 
-  // Recompute bot position whenever activeAgent changes
+  // Recompute bot position whenever activeAgent or selectedAgent changes
+  const targetAgent = selectedAgent || activeAgent;
+  
   useEffect(() => {
-    if (!activeAgent || !trackRef.current) {
+    if (!targetAgent || !trackRef.current) {
       setBotStyle({ opacity: 0 });
       return;
     }
-    const targetIdx = ORDER.indexOf(activeAgent);
+    const targetIdx = ORDER.indexOf(targetAgent);
     if (targetIdx < 0) return;
 
     const nodeEl = nodeRefs.current[targetIdx];
@@ -58,14 +65,14 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
       opacity: 1,
       transform: `translateX(${center}px) translateX(-50%)`,
     });
-  }, [activeAgent]);
+  }, [targetAgent]);
 
-  const activeIdx = activeAgent ? ORDER.indexOf(activeAgent) : -1;
+  const activeIdx = targetAgent ? ORDER.indexOf(targetAgent) : -1;
 
   return (
     <div className="gp-wrapper">
-      {/* Thought bubble — shown while any agent is active */}
-      {activeAgent && (
+      {/* Thought bubble — shown while any agent is active and not done */}
+      {activeAgent && !isDone && (
         <div className="gp-thought-bubble">
           <div className="gp-thought-header">
             <span className="gp-thought-agent">{AGENT_DISPLAY_NAMES[activeAgent]}</span>
@@ -84,7 +91,7 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
       <div className="gp-track" ref={trackRef}>
         {/* Running bot sprite — absolutely positioned, slides between nodes */}
         <div
-          className={`gp-bot ${activeAgent ? 'gp-bot-visible' : ''}`}
+          className={`gp-bot ${targetAgent ? 'gp-bot-visible' : ''}`}
           style={botStyle}
           aria-hidden="true"
         >
@@ -97,6 +104,7 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
         {ORDER.map((name, idx) => {
           const status = pipelineStatus[name];
           const isActive = name === activeAgent;
+          const isSelected = name === targetAgent;
           // Wire is "lit" when both this node and the previous are done
           const wireLit = idx > 0 && pipelineStatus[ORDER[idx - 1]] === 'done' && status === 'done';
 
@@ -107,15 +115,19 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
                 <div className={`gp-wire ${wireLit ? 'gp-wire-done' : ''} ${isActive ? 'gp-wire-active' : ''}`} />
               )}
 
-              <div className="gp-node-col">
+              <div 
+                className="gp-node-col" 
+                onClick={() => { if (isDone && onSelectAgent) onSelectAgent(name); }}
+                style={{ cursor: isDone ? 'pointer' : 'default' }}
+              >
                 <div
                   ref={el => { nodeRefs.current[idx] = el; }}
-                  className={['gp-node', `gp-${status}`, isActive ? 'gp-active' : ''].filter(Boolean).join(' ')}
+                  className={['gp-node', `gp-${status}`, isSelected ? 'gp-active' : ''].filter(Boolean).join(' ')}
                 >
                   <span className="gp-icon">{AGENT_ICON[name]}</span>
-                  {isActive && <span className="gp-ring" />}
+                  {isSelected && <span className="gp-ring" />}
                 </div>
-                <span className={`gp-label ${isActive ? 'gp-label-active' : ''}`}>
+                <span className={`gp-label ${isSelected ? 'gp-label-active' : ''}`}>
                   {AGENT_DISPLAY_NAMES[name]}
                 </span>
               </div>

@@ -93,6 +93,7 @@ export default function ResultsPage() {
   const [liveThought, setLiveThought] = useState('');
   const [logs, setLogs] = useState<ConsoleLog[]>([]);
   const [activeAgent, setActiveAgent] = useState<AgentName | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentName | null>(null);
   const startedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -145,7 +146,11 @@ export default function ResultsPage() {
       (event) => {
         const agent = getAgentFromEvent(event);
         if (agent && AGENT_KEYS[agent]) {
-          if (agent !== activeAgent) { setLiveThought(''); setActiveAgent(AGENT_KEYS[agent]); }
+          if (agent !== activeAgent) { 
+            setLiveThought(''); 
+            setActiveAgent(AGENT_KEYS[agent]);
+            setSelectedAgent(AGENT_KEYS[agent]);
+          }
           setStatus(AGENT_KEYS[agent], 'running');
         }
         // Process text chunks for live thought
@@ -211,7 +216,11 @@ export default function ResultsPage() {
       (event) => {
         const agent = getAgentFromEvent(event);
         if (agent && AGENT_KEYS[agent]) {
-          if (agent !== activeAgent) { setLiveThought(''); setActiveAgent(AGENT_KEYS[agent]); }
+          if (agent !== activeAgent) { 
+            setLiveThought(''); 
+            setActiveAgent(AGENT_KEYS[agent]); 
+            setSelectedAgent(AGENT_KEYS[agent]);
+          }
           setStatus(AGENT_KEYS[agent], 'running');
         }
         const chunk = getTextFromEvent(event);
@@ -363,6 +372,9 @@ export default function ResultsPage() {
           pipelineStatus={pipeline}
           liveThought={liveThought}
           activeAgent={activeAgent}
+          selectedAgent={selectedAgent}
+          isDone={isDone}
+          onSelectAgent={setSelectedAgent}
         />
         <div className="gp-bar-footer">
           <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{doneCount}/7 agents · {formatElapsed(elapsed)}</span>
@@ -381,9 +393,6 @@ export default function ResultsPage() {
       <div className="results-layout">
         <div className="results-main" style={{ maxWidth: 860, margin: '0 auto', width: '100%' }}>
           
-          {/* Agent Console */}
-          <AgentConsole logs={logs} isDone={isDone} />
-
           {phase === 'awaiting_defense' && (
             <div className="defense-banner" style={{ marginBottom: 24, padding: 24, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--bg-surface)' }}>
               <h3 style={{ color: 'var(--red)', marginBottom: 8 }}>CRITICAL QUESTION FROM RISK CRITIC</h3>
@@ -420,86 +429,105 @@ export default function ResultsPage() {
           )}
 
           {/* Sections */}
-          {results.founderSummary ? (
-            <ResultCard icon="👤" title="Founder Profile" badge="FounderProfiler" id="sec-founder">
-              <ResultText text={results.founderSummary} />
-            </ResultCard>
-          ) : pipeline.FounderProfiler === 'running' && (
-            <SkeletonCard icon="👤" title="Founder Profile" badge="FounderProfiler" />
+          {selectedAgent === 'FounderProfiler' && (
+            results.founderSummary ? (
+              <ResultCard icon="👤" title="Founder Profile" badge="FounderProfiler" id="sec-founder">
+                <ResultText text={results.founderSummary} />
+              </ResultCard>
+            ) : pipeline.FounderProfiler === 'running' ? (
+              <SkeletonCard icon="👤" title="Founder Profile" badge="FounderProfiler" />
+            ) : null
           )}
 
-          {results.marketAnalysis ? (
-            <ResultCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" id="sec-market">
-              {results.searchSources && results.searchSources.length > 0 && (
-                <SearchSources sources={results.searchSources} />
+          {selectedAgent === 'MarketDiscovery' && (
+            results.marketAnalysis ? (
+              <ResultCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" id="sec-market">
+                {results.searchSources && results.searchSources.length > 0 && (
+                  <SearchSources sources={results.searchSources} />
+                )}
+                <ResultText text={results.marketAnalysis} />
+              </ResultCard>
+            ) : pipeline.MarketDiscovery === 'running' ? (
+              <SkeletonCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" />
+            ) : null
+          )}
+
+          {selectedAgent === 'MVPArchitect' && (
+            results.mvpPlan ? (
+              <ResultCard icon="🏗" title="MVP Plan" badge="MVPArchitect" id="sec-mvp">
+                <ResultText text={results.mvpPlan} />
+              </ResultCard>
+            ) : pipeline.MVPArchitect === 'running' ? (
+              <SkeletonCard icon="🏗" title="MVP Plan" badge="MVPArchitect" />
+            ) : null
+          )}
+
+          {selectedAgent === 'RiskCritic' && (
+            results.riskAssessment ? (
+              <ResultCard icon="⚠" title="Risk Assessment" badge="RiskCritic" id="sec-risk">
+                <ResultText text={results.riskAssessment} />
+              </ResultCard>
+            ) : pipeline.RiskCritic === 'running' ? (
+              <SkeletonCard icon="⚠" title="Risk Assessment" badge="RiskCritic" />
+            ) : null
+          )}
+
+          {selectedAgent === 'MVPArchitectRefined' && (
+            results.refinedMvpPlan || results.debateTranscript ? (
+              <ResultCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" id="sec-refined">
+                {results.debateTranscript && (
+                  <AgentDebate transcript={results.debateTranscript} />
+                )}
+                {results.refinedMvpPlan && (
+                  <ResultText text={results.refinedMvpPlan} />
+                )}
+              </ResultCard>
+            ) : pipeline.MVPArchitectRefined === 'running' ? (
+              <SkeletonCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" />
+            ) : null
+          )}
+
+          {selectedAgent === 'EvaluationAgent' && (
+            results.evaluationResults ? (
+              <ResultCard icon="◈" title="Evaluation" badge="EvaluationAgent" id="sec-eval">
+                <ScoreCard score={results.founderFitScore} dimensions={results.founderFitMatrix} />
+                {results.founderFitMatrix && results.founderFitMatrix.length > 0 && (
+                  <FounderFitMatrix
+                    dimensions={results.founderFitMatrix}
+                    gateDecision={results.evaluationResults.includes('GATE DECISION:')
+                      ? results.evaluationResults.split('GATE DECISION:')[1]?.split('\n')[0]?.trim()
+                      : undefined}
+                    evaluationSummary={results.evaluationResults.includes('EVALUATION SUMMARY:')
+                      ? results.evaluationResults.split('EVALUATION SUMMARY:')[1]?.split('GATE')[0]?.trim()
+                      : undefined}
+                  />
+                )}
+              </ResultCard>
+            ) : pipeline.EvaluationAgent === 'running' ? (
+              <SkeletonCard icon="◈" title="Evaluation" badge="EvaluationAgent" />
+            ) : null
+          )}
+
+          {selectedAgent === 'FutureSimulator' && (
+            <>
+              {results.simulationResults ? (
+                <ResultCard icon="⏩" title="Future Simulation" badge="FutureSimulator" id="sec-sim">
+                  <SimulationCards simulationText={results.simulationResults} verdict={results.verdict} />
+                </ResultCard>
+              ) : pipeline.FutureSimulator === 'running' ? (
+                <SkeletonCard icon="⏩" title="Future Simulation" badge="FutureSimulator" />
+              ) : null}
+
+              {results.investorBrief && (
+                <ResultCard icon="📄" title="Investor Brief" badge="FutureSimulator" id="sec-brief">
+                  <InvestorBrief brief={results.investorBrief} />
+                </ResultCard>
               )}
-              <ResultText text={results.marketAnalysis} />
-            </ResultCard>
-          ) : pipeline.MarketDiscovery === 'running' && (
-            <SkeletonCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" />
+            </>
           )}
-
-          {results.mvpPlan ? (
-            <ResultCard icon="🏗" title="MVP Plan" badge="MVPArchitect" id="sec-mvp">
-              <ResultText text={results.mvpPlan} />
-            </ResultCard>
-          ) : pipeline.MVPArchitect === 'running' && (
-            <SkeletonCard icon="🏗" title="MVP Plan" badge="MVPArchitect" />
-          )}
-
-          {results.riskAssessment ? (
-            <ResultCard icon="⚠" title="Risk Assessment" badge="RiskCritic" id="sec-risk">
-              <ResultText text={results.riskAssessment} />
-            </ResultCard>
-          ) : pipeline.RiskCritic === 'running' && (
-            <SkeletonCard icon="⚠" title="Risk Assessment" badge="RiskCritic" />
-          )}
-
-          {results.refinedMvpPlan || results.debateTranscript ? (
-            <ResultCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" id="sec-refined">
-              {results.debateTranscript && (
-                <AgentDebate transcript={results.debateTranscript} />
-              )}
-              {results.refinedMvpPlan && (
-                <ResultText text={results.refinedMvpPlan} />
-              )}
-            </ResultCard>
-          ) : pipeline.MVPArchitectRefined === 'running' && (
-            <SkeletonCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" />
-          )}
-
-          {results.evaluationResults ? (
-            <ResultCard icon="◈" title="Evaluation" badge="EvaluationAgent" id="sec-eval">
-              <ScoreCard score={results.founderFitScore} dimensions={results.founderFitMatrix} />
-              {results.founderFitMatrix && results.founderFitMatrix.length > 0 && (
-                <FounderFitMatrix
-                  dimensions={results.founderFitMatrix}
-                  gateDecision={results.evaluationResults.includes('GATE DECISION:')
-                    ? results.evaluationResults.split('GATE DECISION:')[1]?.split('\n')[0]?.trim()
-                    : undefined}
-                  evaluationSummary={results.evaluationResults.includes('EVALUATION SUMMARY:')
-                    ? results.evaluationResults.split('EVALUATION SUMMARY:')[1]?.split('GATE')[0]?.trim()
-                    : undefined}
-                />
-              )}
-            </ResultCard>
-          ) : pipeline.EvaluationAgent === 'running' && (
-            <SkeletonCard icon="◈" title="Evaluation" badge="EvaluationAgent" />
-          )}
-
-          {results.simulationResults ? (
-            <ResultCard icon="⏩" title="Future Simulation" badge="FutureSimulator" id="sec-sim">
-              <SimulationCards simulationText={results.simulationResults} verdict={results.verdict} />
-            </ResultCard>
-          ) : pipeline.FutureSimulator === 'running' && (
-            <SkeletonCard icon="⏩" title="Future Simulation" badge="FutureSimulator" />
-          )}
-
-          {results.investorBrief && (
-            <ResultCard icon="📋" title="Investor Brief" badge="FutureSimulator" id="sec-brief">
-              <InvestorBrief brief={results.investorBrief} />
-            </ResultCard>
-          )}
+          
+          {/* Agent Console */}
+          <AgentConsole logs={logs} isDone={isDone} />
         </div>
       </div>
     </div>
