@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { AgentName, PipelineStatus, AGENT_DISPLAY_NAMES, AGENT_DESCRIPTIONS } from '@/lib/types';
 
 const ORDER: AgentName[] = [
@@ -66,15 +66,15 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
             <div key={name} className="gp-node-wrap">
               {/* connector wire */}
               {idx > 0 && (
-                <div className={gp-wire } />
+                <div className={`gp-wire ${prevDone ? 'active' : ''}`} />
               )}
 
               <div className="gp-node-col">
-                <div className={['gp-node', gp-, isActive ? 'gp-active' : ''].filter(Boolean).join(' ')}>
+                <div className={['gp-node', `gp-${status}`, isActive ? 'gp-active' : ''].filter(Boolean).join(' ')}>
                   <span className="gp-emoji">{AGENT_EMOJI[name]}</span>
                   {isActive && <span className="gp-ring" />}
                 </div>
-                <span className={gp-label }>
+                <span className={`gp-label ${isActive ? 'active' : ''}`}>
                   {AGENT_DISPLAY_NAMES[name]}
                 </span>
               </div>
