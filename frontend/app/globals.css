@@ -932,7 +932,7 @@ body {
 /* Track row: nodes + wires */
 .gp-track {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
   padding: 28px 24px 0;  /* extra top padding to make room for bot */
@@ -941,18 +941,13 @@ body {
   overflow: visible;
 }
 
-.gp-node-wrap {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-.gp-node-wrap:first-child { flex: 0 0 auto; }
+
 
 /* Connecting wire between nodes */
 .gp-wire {
   flex: 1;
   height: 2px;
+  margin-top: 20px; /* Aligns with center of 40px node */
   background: var(--border);
   transition: background 0.4s ease;
 }
@@ -1017,6 +1012,8 @@ body {
   align-items: center;
   gap: 6px;
   position: relative;
+  flex: 0 0 auto;
+  z-index: 2;
 }
 
 .gp-node {

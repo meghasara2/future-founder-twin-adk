@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dna, Search, Building2, AlertTriangle, PenLine, BarChart3, Rocket, Bot,
 } from 'lucide-react';
@@ -101,7 +101,7 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
           const wireLit = idx > 0 && pipelineStatus[ORDER[idx - 1]] === 'done' && status === 'done';
 
           return (
-            <div key={name} className="gp-node-wrap">
+            <React.Fragment key={name}>
               {/* Connector wire */}
               {idx > 0 && (
                 <div className={`gp-wire ${wireLit ? 'gp-wire-done' : ''} ${isActive ? 'gp-wire-active' : ''}`} />
@@ -119,7 +119,7 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
                   {AGENT_DISPLAY_NAMES[name]}
                 </span>
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
       </div>
