@@ -6,6 +6,7 @@ export interface SessionState {
   market_analysis?: string;
   mvp_plan?: string;
   risk_assessment?: string;
+  debate_transcript?: string;
   mvp_plan_refined?: string;
   evaluation_results?: string;   // EvaluationAgent output (score rubric + gate)
   simulation_results?: string;
@@ -18,6 +19,7 @@ export interface ParsedResults {
   searchSources: string[] | null;   // extracted from SOURCES CONSULTED block
   mvpPlan: string | null;
   riskAssessment: string | null;
+  debateTranscript: { role: string; content: string }[] | null;
   refinedMvpPlan: string | null;
   evaluationResults: string | null; // EvaluationAgent score rubric
   founderFitMatrix: FounderFitDimension[] | null; // parsed from evaluationResults

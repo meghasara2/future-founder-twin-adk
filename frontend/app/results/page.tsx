@@ -11,6 +11,8 @@ import SearchSources from '@/components/SearchSources';
 import SimulationCards from '@/components/SimulationCards';
 import InvestorBrief from '@/components/InvestorBrief';
 import ThemeToggle from '@/components/ThemeToggle';
+import AgentConsole, { ConsoleLog } from '@/components/AgentConsole';
+import AgentDebate from '@/components/AgentDebate';
 import { saveToHistory } from '@/components/HistoryPanel';
 import {
   runAgentSSE, getAgentFromEvent, getStateDeltaFromEvent, getTextFromEvent,
@@ -89,6 +91,7 @@ export default function ResultsPage() {
   const [isConnecting, setIsConnecting] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [liveThought, setLiveThought] = useState('');
+  const [logs, setLogs] = useState<ConsoleLog[]>([]);
   const [activeAgent, setActiveAgent] = useState<AgentName | null>(null);
   const startedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -145,9 +148,38 @@ export default function ResultsPage() {
           if (agent !== activeAgent) { setLiveThought(''); setActiveAgent(AGENT_KEYS[agent]); }
           setStatus(AGENT_KEYS[agent], 'running');
         }
-        // Stream live thought text
+        }
+        // Process text chunks for live thought
         const chunk = getTextFromEvent(event);
-        if (chunk) setLiveThought(prev => (prev + chunk).slice(-600));
+        if (chunk) {
+          setLiveThought(prev => (prev + chunk).slice(-600));
+          // Only add text to logs if it's the start of a sentence or a full thought (simplistic check for mock)
+          if (chunk.includes('\\n')) {
+             setLogs(prev => [...prev, {
+               id: Math.random().toString(), timestamp: Date.now(),
+               agent: AGENT_KEYS[agent!] || 'System', type: 'info', message: chunk.trim()
+             }]);
+          }
+        }
+        
+        // Process tool calls
+        if (event.content?.parts?.[0]?.function_call) {
+           const call = event.content.parts[0].function_call;
+           setLogs(prev => [...prev, {
+             id: Math.random().toString(), timestamp: Date.now(),
+             agent: AGENT_KEYS[agent!] || 'System', type: 'tool_call',
+             message: `${call.name}(${JSON.stringify(call.args)})`
+           }]);
+        }
+        if (event.content?.parts?.[0]?.function_response) {
+           const res = event.content.parts[0].function_response;
+           setLogs(prev => [...prev, {
+             id: Math.random().toString(), timestamp: Date.now(),
+             agent: AGENT_KEYS[agent!] || 'System', type: 'tool_result',
+             message: JSON.stringify(res.response)
+           }]);
+        }
+
         const d = getStateDeltaFromEvent(event);
         if (d.founder_profile_summary) { setResults(p => ({ ...p, founderSummary: d.founder_profile_summary })); setStatus('FounderProfiler', 'done'); }
         if (d.market_analysis) {
@@ -184,8 +216,41 @@ export default function ResultsPage() {
           setStatus(AGENT_KEYS[agent], 'running');
         }
         const chunk = getTextFromEvent(event);
-        if (chunk) setLiveThought(prev => (prev + chunk).slice(-600));
+        if (chunk) {
+          setLiveThought(prev => (prev + chunk).slice(-600));
+          if (chunk.includes('\\n')) {
+             setLogs(prev => [...prev, {
+               id: Math.random().toString(), timestamp: Date.now(),
+               agent: AGENT_KEYS[agent!] || 'System', type: 'info', message: chunk.trim()
+             }]);
+          }
+        }
+        // Process tool calls
+        if (event.content?.parts?.[0]?.function_call) {
+           const call = event.content.parts[0].function_call;
+           setLogs(prev => [...prev, {
+             id: Math.random().toString(), timestamp: Date.now(),
+             agent: AGENT_KEYS[agent!] || 'System', type: 'tool_call',
+             message: `${call.name}(${JSON.stringify(call.args)})`
+           }]);
+        }
+        if (event.content?.parts?.[0]?.function_response) {
+           const res = event.content.parts[0].function_response;
+           setLogs(prev => [...prev, {
+             id: Math.random().toString(), timestamp: Date.now(),
+             agent: AGENT_KEYS[agent!] || 'System', type: 'tool_result',
+             message: JSON.stringify(res.response)
+           }]);
+        }
+        
         const d = getStateDeltaFromEvent(event);
+        if (d.debate_transcript) {
+          try {
+            setResults(p => ({ ...p, debateTranscript: JSON.parse(d.debate_transcript!) }));
+          } catch (e) {
+            console.error("Failed to parse debate transcript", e);
+          }
+        }
         if (d.mvp_plan_refined) { setResults(p => ({ ...p, refinedMvpPlan: d.mvp_plan_refined })); setStatus('MVPArchitectRefined', 'done'); }
         if (d.evaluation_results) {
           setResults(p => ({ ...p, evaluationResults: d.evaluation_results, founderFitMatrix: parseFounderFitMatrix(d.evaluation_results), founderFitScore: parseScoreFromEvaluation(d.evaluation_results) }));
@@ -315,8 +380,11 @@ export default function ResultsPage() {
       </div>
 
       <div className="results-layout">
-        {/* Main — now full width */}
         <div className="results-main" style={{ maxWidth: 860, margin: '0 auto', width: '100%' }}>
+          
+          {/* Agent Console */}
+          <AgentConsole logs={logs} isDone={isDone} />
+
           {phase === 'awaiting_defense' && (
             <div className="defense-banner" style={{ marginBottom: 24, padding: 24, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--bg-surface)' }}>
               <h3 style={{ color: 'var(--red)', marginBottom: 8 }}>CRITICAL QUESTION FROM RISK CRITIC</h3>
@@ -388,9 +456,14 @@ export default function ResultsPage() {
             <SkeletonCard icon="⚠" title="Risk Assessment" badge="RiskCritic" />
           )}
 
-          {results.refinedMvpPlan ? (
+          {results.refinedMvpPlan || results.debateTranscript ? (
             <ResultCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" id="sec-refined">
-              <ResultText text={results.refinedMvpPlan} />
+              {results.debateTranscript && (
+                <AgentDebate transcript={results.debateTranscript} />
+              )}
+              {results.refinedMvpPlan && (
+                <ResultText text={results.refinedMvpPlan} />
+              )}
             </ResultCard>
           ) : pipeline.MVPArchitectRefined === 'running' && (
             <SkeletonCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" />

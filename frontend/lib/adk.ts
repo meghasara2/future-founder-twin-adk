@@ -90,10 +90,18 @@ Alex has the rare combination of technical execution ability and operator-level 
         await sleep(400);
 
         // ── Market Discovery ──────────────────────────
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Querying Google Search API for market landscape...\n' }] } });
+        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Initiating market analysis protocols...\n' }] } });
+        await sleep(600);
+        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_call: { name: 'search_web', args: { query: 'SMB operational inefficiency tools TAM SAM SOM' } } }] } });
+        await sleep(1000);
+        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_response: { name: 'search_web', response: { results_found: 12, top_result: 'Gartner: SMB Automation Market 2024' } } }] } });
+        await sleep(400);
+        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Querying competitor pricing and positioning data...\n' }] } });
+        await sleep(800);
+        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_call: { name: 'scrape_crunchbase', args: { sector: 'SMB workflow automation', limit: 5 } } }] } });
         await sleep(1200);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Scanning competitor pricing and positioning pages...\n' }] } });
-        await sleep(1200);
+        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_response: { name: 'scrape_crunchbase', response: { competitors: ['Zapier', 'Make', 'Monday.com', 'Notion'] } } }] } });
+        await sleep(600);
         onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Found 4 direct competitors. Analysing TAM and growth trends...\n' }] } });
         await sleep(1000);
         onEvent({ actions: { state_delta: { market_analysis: `## Market Analysis
@@ -127,8 +135,12 @@ SOURCES CONSULTED:
         await sleep(400);
 
         // ── MVP Architect ──────────────────────────
-        onEvent({ author: 'MVPArchitect', content: { parts: [{ text: 'Designing minimal viable architecture...\n' }] } });
-        await sleep(1500);
+        onEvent({ author: 'MVPArchitect', content: { parts: [{ text: 'Designing minimal viable architecture based on founder profile...\n' }] } });
+        await sleep(1000);
+        onEvent({ author: 'MVPArchitect', content: { parts: [{ function_call: { name: 'read_founder_profile', args: {} } }] } });
+        await sleep(600);
+        onEvent({ author: 'MVPArchitect', content: { parts: [{ function_response: { name: 'read_founder_profile', response: { skills: ['React', 'Node.js', 'PostgreSQL'], budget: 64000 } } }] } });
+        await sleep(800);
         onEvent({ author: 'MVPArchitect', content: { parts: [{ text: 'Selecting stack based on founder skills and speed-to-market requirements...\n' }] } });
         await sleep(1200);
         onEvent({ actions: { state_delta: { mvp_plan: `## MVP Architecture Plan
@@ -160,8 +172,12 @@ SOURCES CONSULTED:
         await sleep(400);
 
         // ── Risk Critic ──────────────────────────
-        onEvent({ author: 'RiskCritic', content: { parts: [{ text: 'Running adversarial risk analysis...\n' }] } });
-        await sleep(1500);
+        onEvent({ author: 'RiskCritic', content: { parts: [{ text: 'Running adversarial risk analysis on proposed MVP...\n' }] } });
+        await sleep(800);
+        onEvent({ author: 'RiskCritic', content: { parts: [{ function_call: { name: 'analyze_vulnerabilities', args: { target: 'MVP_Plan' } } }] } });
+        await sleep(1200);
+        onEvent({ author: 'RiskCritic', content: { parts: [{ function_response: { name: 'analyze_vulnerabilities', response: { critical_flaws: 2, warnings: 4 } } }] } });
+        await sleep(400);
         onEvent({ author: 'RiskCritic', content: { parts: [{ text: 'Probing for existential threats and moat weaknesses...\n' }] } });
         await sleep(1200);
         onEvent({ actions: { state_delta: { risk_assessment: `## Risk Assessment
@@ -191,11 +207,22 @@ CRITICAL QUESTION: What is your unfair advantage over a well-funded Zapier verti
       if (agentName === 'FutureFounderTwinPhase2') {
 
         // ── MVP Refined ──────────────────────────
-        onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Integrating founder defense into MVP architecture...\n' }] } });
+        onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Initiating cross-agent debate protocol with Risk Critic...\n' }] } });
+        await sleep(1000);
+        
+        const mockDebate = [
+          { role: 'RiskCritic', content: 'The founder has 8 months runway and no co-founder. Your proposed custom trigger/action engine is too complex. They need to validate GTM before building a robust backend.' },
+          { role: 'MVPArchitect', content: 'Valid point. The data moat comes from benchmark analytics, not the automation engine itself. I can pivot the MVP to a lightweight workflow builder using standard APIs, focusing purely on data collection.' },
+          { role: 'RiskCritic', content: 'Agreed. That cuts the build time from 8 weeks to 4 weeks. Ensure you update the GTM strategy to prioritize capturing benchmark data from design partners immediately.' }
+        ];
+        onEvent({ actions: { state_delta: { debate_transcript: JSON.stringify(mockDebate) } } });
+        await sleep(2000);
+
+        onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Integrating founder defense and debate outcomes into MVP architecture...\n' }] } });
         await sleep(1200);
         onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Refining product strategy based on risk mitigation input...\n' }] } });
         await sleep(1000);
-        onEvent({ actions: { state_delta: { mvp_plan_refined: `## Refined MVP Plan (Post-Defense)
+        onEvent({ actions: { state_delta: { mvp_plan_refined: `## Refined MVP Plan (Post-Debate)
 
 Based on Alex's defense, the moat is clarified: **proprietary benchmark data from 500+ SMB operators** collected over 2 years at the previous company. This changes the product strategy significantly.
 
