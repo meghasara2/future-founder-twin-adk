@@ -77,7 +77,7 @@ function HistoryCard({ entry, idx }: { entry: HistoryEntry; idx: number }) {
   const date = new Date(entry.timestamp).toLocaleString();
   const mins = Math.floor(entry.elapsedSeconds / 60);
   const secs = entry.elapsedSeconds % 60;
-  const elapsed = ${mins}m s;
+  const elapsed = `${mins}m ${secs}s`;
 
   return (
     <div className="hist-card">
