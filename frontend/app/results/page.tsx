@@ -148,7 +148,6 @@ export default function ResultsPage() {
           if (agent !== activeAgent) { setLiveThought(''); setActiveAgent(AGENT_KEYS[agent]); }
           setStatus(AGENT_KEYS[agent], 'running');
         }
-        }
         // Process text chunks for live thought
         const chunk = getTextFromEvent(event);
         if (chunk) {
