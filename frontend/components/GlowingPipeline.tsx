@@ -1,5 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import {
+  Dna, Search, Building2, AlertTriangle, PenLine, BarChart3, Rocket, Bot,
+} from 'lucide-react';
 import { AgentName, PipelineStatus, AGENT_DISPLAY_NAMES, AGENT_DESCRIPTIONS } from '@/lib/types';
 
 const ORDER: AgentName[] = [
@@ -7,14 +10,14 @@ const ORDER: AgentName[] = [
   'MVPArchitectRefined', 'EvaluationAgent', 'FutureSimulator',
 ];
 
-const AGENT_EMOJI: Record<AgentName, string> = {
-  FounderProfiler:    '🧬',
-  MarketDiscovery:    '🔍',
-  MVPArchitect:       '🏗',
-  RiskCritic:         '⚠️',
-  MVPArchitectRefined:'✏️',
-  EvaluationAgent:    '📊',
-  FutureSimulator:    '🚀',
+const AGENT_ICON: Record<AgentName, React.ReactNode> = {
+  FounderProfiler:    <Dna           size={16} strokeWidth={1.8} />,
+  MarketDiscovery:    <Search        size={16} strokeWidth={1.8} />,
+  MVPArchitect:       <Building2     size={16} strokeWidth={1.8} />,
+  RiskCritic:         <AlertTriangle size={16} strokeWidth={1.8} />,
+  MVPArchitectRefined:<PenLine       size={16} strokeWidth={1.8} />,
+  EvaluationAgent:    <BarChart3     size={16} strokeWidth={1.8} />,
+  FutureSimulator:    <Rocket        size={16} strokeWidth={1.8} />,
 };
 
 interface GlowingPipelineProps {
@@ -85,7 +88,9 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
           style={botStyle}
           aria-hidden="true"
         >
-          <span className={`gp-bot-sprite ${facingRight ? '' : 'gp-bot-flip'}`}>🤖</span>
+          <span className={`gp-bot-sprite ${facingRight ? '' : 'gp-bot-flip'}`}>
+            <Bot size={22} strokeWidth={1.8} />
+          </span>
           <span className="gp-bot-shadow" />
         </div>
 
@@ -107,7 +112,7 @@ export default function GlowingPipeline({ pipelineStatus, liveThought, activeAge
                   ref={el => { nodeRefs.current[idx] = el; }}
                   className={['gp-node', `gp-${status}`, isActive ? 'gp-active' : ''].filter(Boolean).join(' ')}
                 >
-                  <span className="gp-emoji">{AGENT_EMOJI[name]}</span>
+                  <span className="gp-icon">{AGENT_ICON[name]}</span>
                   {isActive && <span className="gp-ring" />}
                 </div>
                 <span className={`gp-label ${isActive ? 'gp-label-active' : ''}`}>
