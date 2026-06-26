@@ -53,9 +53,11 @@ export default function GlowingPipeline({
     const trackEl = trackRef.current;
     if (!nodeEl || !trackEl) return;
 
-    const trackRect = trackEl.getBoundingClientRect();
-    const nodeRect = nodeEl.getBoundingClientRect();
-    const center = nodeRect.left + nodeRect.width / 2 - trackRect.left;
+    const colEl = nodeEl.parentElement;
+    if (!colEl) return;
+
+    // Use unscaled DOM properties rather than getBoundingClientRect to avoid CSS scale bugs
+    const center = colEl.offsetLeft + colEl.offsetWidth / 2;
 
     // Determine which direction the bot is running
     setFacingRight(targetIdx >= prevIdxRef.current);

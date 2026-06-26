@@ -10,7 +10,7 @@ import FounderFitMatrix from '@/components/FounderFitMatrix';
 import SearchSources from '@/components/SearchSources';
 import SimulationCards from '@/components/SimulationCards';
 import InvestorBrief from '@/components/InvestorBrief';
-import ThemeToggle from '@/components/ThemeToggle';
+import Navbar from '@/components/Navbar';
 import AgentConsole, { ConsoleLog } from '@/components/AgentConsole';
 import AgentDebate from '@/components/AgentDebate';
 import { saveToHistory } from '@/components/HistoryPanel';
@@ -84,7 +84,7 @@ export default function ResultsPage() {
   const [results, setResults] = useState<ParsedResults>({
     founderSummary: null, marketAnalysis: null, searchSources: null, mvpPlan: null,
     riskAssessment: null, refinedMvpPlan: null, evaluationResults: null, founderFitMatrix: null,
-    simulationResults: null, investorBrief: null, founderFitScore: null, verdict: null,
+    simulationResults: null, investorBrief: null, founderFitScore: null, verdict: null, debateTranscript: null
   });
   const [isDone, setIsDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,13 +206,14 @@ export default function ResultsPage() {
     );
   }, []);
 
-  const submitDefense = () => {
-    if (!defenseText.trim()) return;
+  const submitDefense = (overrideText?: string) => {
+    const textToSubmit = overrideText || defenseText;
+    if (!textToSubmit.trim()) return;
     setPhase('phase2');
     const uid = sessionStorage.getItem('fft_user_id')!;
     const sid = sessionStorage.getItem('fft_session_id')!;
     
-    runAgentSSE(uid, sid, defenseText, 'FutureFounderTwinPhase2',
+    runAgentSSE(uid, sid, textToSubmit, 'FutureFounderTwinPhase2',
       (event) => {
         const agent = getAgentFromEvent(event);
         if (agent && AGENT_KEYS[agent]) {
@@ -275,15 +276,15 @@ export default function ResultsPage() {
   };
 
   const exportPDF = async () => {
-    const element = document.querySelector('.results-main');
+    const element = document.querySelector('.results-main') as HTMLElement;
     if (!element) return;
     const html2pdf = (await import('html2pdf.js')).default;
     const opt = {
       margin:       10,
       filename:     'Future_Founder_Twin_Analysis.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
+      image:        { type: 'jpeg' as const, quality: 0.98 },
       html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
     };
     html2pdf().set(opt).from(element).save();
   };
@@ -294,15 +295,7 @@ export default function ResultsPage() {
   if (isConnecting) {
     return (
       <div className="results-page">
-        <header className="topbar">
-          <div className="topbar-logo">
-            <svg className="topbar-logo-icon" viewBox="0 0 22 22" fill="none">
-              <path d="M11 2L18 6.5V15.5L11 20L4 15.5V6.5L11 2Z" fill="none" stroke="#6C63FF" strokeWidth="1.5"/>
-              <path d="M11 6L15.5 8.75V14.25L11 17L6.5 14.25V8.75L11 6Z" fill="#6C63FF" opacity="0.5"/>
-            </svg>
-            Future Founder Twin
-          </div>
-        </header>
+        <Navbar sessionStatus="idle" showLinks={false} />
         <div className="full-screen-state">
           <div className="loading-spinner" />
           <p className="state-sub">Connecting to AI pipeline...</p>
@@ -314,15 +307,7 @@ export default function ResultsPage() {
   if (error && !results.founderSummary) {
     return (
       <div className="results-page">
-        <header className="topbar">
-          <div className="topbar-logo">
-            <svg className="topbar-logo-icon" viewBox="0 0 22 22" fill="none">
-              <path d="M11 2L18 6.5V15.5L11 20L4 15.5V6.5L11 2Z" fill="none" stroke="#6C63FF" strokeWidth="1.5"/>
-              <path d="M11 6L15.5 8.75V14.25L11 17L6.5 14.25V8.75L11 6Z" fill="#6C63FF" opacity="0.5"/>
-            </svg>
-            Future Founder Twin
-          </div>
-        </header>
+        <Navbar sessionStatus="idle" showLinks={false} />
         <div className="full-screen-state">
           <div style={{ fontSize: 40 }}>⚠️</div>
           <h2 className="state-title">Backend Unavailable</h2>
@@ -347,27 +332,10 @@ export default function ResultsPage() {
 
   return (
     <div className="results-page">
-      {/* Topbar */}
-      <header className="topbar">
-        <div className="topbar-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <svg className="topbar-logo-icon" viewBox="0 0 22 22" fill="none">
-            <path d="M11 2L18 6.5V15.5L11 20L4 15.5V6.5L11 2Z" fill="none" stroke="#6C63FF" strokeWidth="1.5"/>
-            <path d="M11 6L15.5 8.75V14.25L11 17L6.5 14.25V8.75L11 6Z" fill="#6C63FF" opacity="0.5"/>
-          </svg>
-          Future Founder Twin
-        </div>
-        <div className="topbar-spacer" />
-        {isDone && (
-          <button className="btn-copy-brief" onClick={handleShare} style={{ marginRight: 16 }}>
-            ✨ Share Verdict
-          </button>
-        )}
-        <ThemeToggle />
-        <span className={`session-dot ${isDone ? 'done' : 'active'}`} />
-      </header>
+      <Navbar sessionStatus={isDone ? 'done' : 'active'} showLinks={false} />
 
       {/* Glowing Pipeline Bar */}
-      <div className="gp-bar">
+      <div className="gp-bar" style={{ position: 'static', zIndex: 0 }}>
         <GlowingPipeline
           pipelineStatus={pipeline}
           liveThought={liveThought}
@@ -381,6 +349,7 @@ export default function ResultsPage() {
           <div style={{ display: 'flex', gap: 8 }}>
             {isDone && results.investorBrief && (
               <>
+                <button className="btn-copy-brief" onClick={handleShare}>✨ Share Verdict</button>
                 <button className="btn-copy-brief" id="sidebar-copy-brief" onClick={() => navigator.clipboard.writeText(results.investorBrief!)}>📋 Copy Brief</button>
                 <button className="btn-copy-brief" onClick={exportPDF}>📄 Export PDF</button>
               </>
@@ -405,12 +374,23 @@ export default function ResultsPage() {
                 value={defenseText}
                 onChange={e => setDefenseText(e.target.value)}
               />
-              <button 
-                onClick={submitDefense}
-                style={{ marginTop: 12, padding: '10px 20px', background: 'var(--primary)', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}
-              >
-                Submit Defense & Continue
-              </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                <button 
+                  onClick={() => submitDefense()}
+                  style={{ padding: '10px 20px', background: 'var(--primary)', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}
+                >
+                  Submit Defense & Continue
+                </button>
+                <button 
+                  onClick={() => {
+                    const autoText = "I understand the risks highlighted. However, my deep technical expertise allows me to mitigate the execution risks. Additionally, the market size is large enough that even capturing a niche segment will yield significant returns. I have a lean go-to-market strategy focused on direct sales to early adopters, and I am prepared to pivot if the initial hypothesis is invalidated.";
+                    setDefenseText(autoText);
+                  }}
+                  style={{ padding: '10px 20px', background: 'var(--bg)', color: 'var(--text-1)', borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer' }}
+                >
+                  Auto-Fill (Judge Fast-Forward)
+                </button>
+              </div>
             </div>
           )}
 

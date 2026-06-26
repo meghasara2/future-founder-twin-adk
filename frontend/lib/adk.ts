@@ -65,13 +65,13 @@ export async function runAgentSSE(
       if (agentName === 'FutureFounderTwinPhase1') {
 
         // ── Founder Profiler ──────────────────────────
-        onEvent({ author: 'FounderProfiler', content: { parts: [{ text: 'Parsing your interview transcript...\n' }] } });
+        onEvent({ type: 'message', author: 'FounderProfiler', content: { parts: [{ text: 'Parsing your interview transcript...\n' }] } });
         await sleep(800);
-        onEvent({ author: 'FounderProfiler', content: { parts: [{ text: 'Identifying core technical skills and domain expertise...\n' }] } });
+        onEvent({ type: 'message', author: 'FounderProfiler', content: { parts: [{ text: 'Identifying core technical skills and domain expertise...\n' }] } });
         await sleep(1000);
-        onEvent({ author: 'FounderProfiler', content: { parts: [{ text: 'Cross-referencing against market requirements...\n' }] } });
+        onEvent({ type: 'message', author: 'FounderProfiler', content: { parts: [{ text: 'Cross-referencing against market requirements...\n' }] } });
         await sleep(800);
-        onEvent({ actions: { state_delta: { founder_profile_summary: `## Founder Profile Summary
+        onEvent({ type: 'message', actions: { state_delta: { founder_profile_summary: `## Founder Profile Summary
 
 **Name:** Alex Chen · **Background:** Full-Stack Engineer → Product Lead
 
@@ -90,21 +90,21 @@ Alex has the rare combination of technical execution ability and operator-level 
         await sleep(400);
 
         // ── Market Discovery ──────────────────────────
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Initiating market analysis protocols...\n' }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ text: 'Initiating market analysis protocols...\n' }] } });
         await sleep(600);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_call: { name: 'search_web', args: { query: 'SMB operational inefficiency tools TAM SAM SOM' } } }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ function_call: { name: 'search_web', args: { query: 'SMB operational inefficiency tools TAM SAM SOM' } } }] } });
         await sleep(1000);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_response: { name: 'search_web', response: { results_found: 12, top_result: 'Gartner: SMB Automation Market 2024' } } }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ function_response: { name: 'search_web', response: { results_found: 12, top_result: 'Gartner: SMB Automation Market 2024' } } }] } });
         await sleep(400);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Querying competitor pricing and positioning data...\n' }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ text: 'Querying competitor pricing and positioning data...\n' }] } });
         await sleep(800);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_call: { name: 'scrape_crunchbase', args: { sector: 'SMB workflow automation', limit: 5 } } }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ function_call: { name: 'scrape_crunchbase', args: { sector: 'SMB workflow automation', limit: 5 } } }] } });
         await sleep(1200);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ function_response: { name: 'scrape_crunchbase', response: { competitors: ['Zapier', 'Make', 'Monday.com', 'Notion'] } } }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ function_response: { name: 'scrape_crunchbase', response: { competitors: ['Zapier', 'Make', 'Monday.com', 'Notion'] } } }] } });
         await sleep(600);
-        onEvent({ author: 'MarketDiscovery', content: { parts: [{ text: 'Found 4 direct competitors. Analysing TAM and growth trends...\n' }] } });
+        onEvent({ type: 'message', author: 'MarketDiscovery', content: { parts: [{ text: 'Found 4 direct competitors. Analysing TAM and growth trends...\n' }] } });
         await sleep(1000);
-        onEvent({ actions: { state_delta: { market_analysis: `## Market Analysis
+        onEvent({ type: 'message', actions: { state_delta: { market_analysis: `## Market Analysis
 
 ### Market Size & Growth
 The SMB operations automation market is valued at **$14.8B in 2024**, growing at **22% CAGR** through 2028 (Gartner, 2024). The primary driver is the post-pandemic push for digital-first workflows in businesses with 10–250 employees.
@@ -135,15 +135,15 @@ SOURCES CONSULTED:
         await sleep(400);
 
         // ── MVP Architect ──────────────────────────
-        onEvent({ author: 'MVPArchitect', content: { parts: [{ text: 'Designing minimal viable architecture based on founder profile...\n' }] } });
+        onEvent({ type: 'message', author: 'MVPArchitect', content: { parts: [{ text: 'Designing minimal viable architecture based on founder profile...\n' }] } });
         await sleep(1000);
-        onEvent({ author: 'MVPArchitect', content: { parts: [{ function_call: { name: 'read_founder_profile', args: {} } }] } });
+        onEvent({ type: 'message', author: 'MVPArchitect', content: { parts: [{ function_call: { name: 'read_founder_profile', args: {} } }] } });
         await sleep(600);
-        onEvent({ author: 'MVPArchitect', content: { parts: [{ function_response: { name: 'read_founder_profile', response: { skills: ['React', 'Node.js', 'PostgreSQL'], budget: 64000 } } }] } });
+        onEvent({ type: 'message', author: 'MVPArchitect', content: { parts: [{ function_response: { name: 'read_founder_profile', response: { skills: ['React', 'Node.js', 'PostgreSQL'], budget: 64000 } } }] } });
         await sleep(800);
-        onEvent({ author: 'MVPArchitect', content: { parts: [{ text: 'Selecting stack based on founder skills and speed-to-market requirements...\n' }] } });
+        onEvent({ type: 'message', author: 'MVPArchitect', content: { parts: [{ text: 'Selecting stack based on founder skills and speed-to-market requirements...\n' }] } });
         await sleep(1200);
-        onEvent({ actions: { state_delta: { mvp_plan: `## MVP Architecture Plan
+        onEvent({ type: 'message', actions: { state_delta: { mvp_plan: `## MVP Architecture Plan
 
 ### Vision
 **"Zapier for SMBs that hate Zapier."** A vertically-opinionated ops automation platform that ships with 50+ pre-built workflow templates for restaurants, retail, field services, and clinics.
@@ -172,15 +172,15 @@ SOURCES CONSULTED:
         await sleep(400);
 
         // ── Risk Critic ──────────────────────────
-        onEvent({ author: 'RiskCritic', content: { parts: [{ text: 'Running adversarial risk analysis on proposed MVP...\n' }] } });
+        onEvent({ type: 'message', author: 'RiskCritic', content: { parts: [{ text: 'Running adversarial risk analysis on proposed MVP...\n' }] } });
         await sleep(800);
-        onEvent({ author: 'RiskCritic', content: { parts: [{ function_call: { name: 'analyze_vulnerabilities', args: { target: 'MVP_Plan' } } }] } });
+        onEvent({ type: 'message', author: 'RiskCritic', content: { parts: [{ function_call: { name: 'analyze_vulnerabilities', args: { target: 'MVP_Plan' } } }] } });
         await sleep(1200);
-        onEvent({ author: 'RiskCritic', content: { parts: [{ function_response: { name: 'analyze_vulnerabilities', response: { critical_flaws: 2, warnings: 4 } } }] } });
+        onEvent({ type: 'message', author: 'RiskCritic', content: { parts: [{ function_response: { name: 'analyze_vulnerabilities', response: { critical_flaws: 2, warnings: 4 } } }] } });
         await sleep(400);
-        onEvent({ author: 'RiskCritic', content: { parts: [{ text: 'Probing for existential threats and moat weaknesses...\n' }] } });
+        onEvent({ type: 'message', author: 'RiskCritic', content: { parts: [{ text: 'Probing for existential threats and moat weaknesses...\n' }] } });
         await sleep(1200);
-        onEvent({ actions: { state_delta: { risk_assessment: `## Risk Assessment
+        onEvent({ type: 'message', actions: { state_delta: { risk_assessment: `## Risk Assessment
 
 ### 🔴 Critical Risk: Zapier Vertical Play
 **Threat:** Zapier could launch "Zapier for [Vertical]" products with their existing 2M customer base and brand recognition, wiping out your differentiation overnight.
@@ -207,7 +207,7 @@ CRITICAL QUESTION: What is your unfair advantage over a well-funded Zapier verti
       if (agentName === 'FutureFounderTwinPhase2') {
 
         // ── MVP Refined ──────────────────────────
-        onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Initiating cross-agent debate protocol with Risk Critic...\n' }] } });
+        onEvent({ type: 'message', author: 'MVPArchitectRefined', content: { parts: [{ text: 'Initiating cross-agent debate protocol with Risk Critic...\n' }] } });
         await sleep(1000);
         
         const mockDebate = [
@@ -215,14 +215,14 @@ CRITICAL QUESTION: What is your unfair advantage over a well-funded Zapier verti
           { role: 'MVPArchitect', content: 'Valid point. The data moat comes from benchmark analytics, not the automation engine itself. I can pivot the MVP to a lightweight workflow builder using standard APIs, focusing purely on data collection.' },
           { role: 'RiskCritic', content: 'Agreed. That cuts the build time from 8 weeks to 4 weeks. Ensure you update the GTM strategy to prioritize capturing benchmark data from design partners immediately.' }
         ];
-        onEvent({ actions: { state_delta: { debate_transcript: JSON.stringify(mockDebate) } } });
+        onEvent({ type: 'message', actions: { state_delta: { debate_transcript: JSON.stringify(mockDebate) } } });
         await sleep(2000);
 
-        onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Integrating founder defense and debate outcomes into MVP architecture...\n' }] } });
+        onEvent({ type: 'message', author: 'MVPArchitectRefined', content: { parts: [{ text: 'Integrating founder defense and debate outcomes into MVP architecture...\n' }] } });
         await sleep(1200);
-        onEvent({ author: 'MVPArchitectRefined', content: { parts: [{ text: 'Refining product strategy based on risk mitigation input...\n' }] } });
+        onEvent({ type: 'message', author: 'MVPArchitectRefined', content: { parts: [{ text: 'Refining product strategy based on risk mitigation input...\n' }] } });
         await sleep(1000);
-        onEvent({ actions: { state_delta: { mvp_plan_refined: `## Refined MVP Plan (Post-Debate)
+        onEvent({ type: 'message', actions: { state_delta: { mvp_plan_refined: `## Refined MVP Plan (Post-Debate)
 
 Based on Alex's defense, the moat is clarified: **proprietary benchmark data from 500+ SMB operators** collected over 2 years at the previous company. This changes the product strategy significantly.
 
@@ -247,9 +247,9 @@ Based on Alex's defense, the moat is clarified: **proprietary benchmark data fro
         await sleep(400);
 
         // ── Evaluation Agent ──────────────────────────
-        onEvent({ author: 'EvaluationAgent', content: { parts: [{ text: 'Running Founder Fit Matrix evaluation...\n' }] } });
+        onEvent({ type: 'message', author: 'EvaluationAgent', content: { parts: [{ text: 'Running Founder Fit Matrix evaluation...\n' }] } });
         await sleep(1500);
-        onEvent({ author: 'EvaluationAgent', content: { parts: [{ text: 'Scoring across 4 dimensions: Market, Technical, Execution, Risk...\n' }] } });
+        onEvent({ type: 'message', author: 'EvaluationAgent', content: { parts: [{ text: 'Scoring across 4 dimensions: Market, Technical, Execution, Risk...\n' }] } });
         await sleep(1200);
         const evalText = `EVALUATION SCORE: 79/100
 
@@ -259,13 +259,13 @@ Based on Alex's defense, the moat is clarified: **proprietary benchmark data fro
 | Tech Fit | 23/25 | Founder has precisely the stack skills required. 7 years of relevant B2B SaaS experience is exceptional. -2 for solo-founder risk. |
 | Execution | 17/25 | 8-month runway is tight. No co-founder is a real concern. GTM gap is the most pressing risk. Benchmark-led growth strategy is creative but unproven. |
 | Risk | 18/25 | Risks are well-identified and mitigation plan is credible. Zapier threat remains real. Data moat is the strongest risk hedge available. |`;
-        onEvent({ actions: { state_delta: { evaluation_results: evalText } } });
+        onEvent({ type: 'message', actions: { state_delta: { evaluation_results: evalText } } });
         await sleep(400);
 
         // ── Future Simulator ──────────────────────────
-        onEvent({ author: 'FutureSimulator', content: { parts: [{ text: 'Simulating 3 future timelines at 18-month horizon...\n' }] } });
+        onEvent({ type: 'message', author: 'FutureSimulator', content: { parts: [{ text: 'Simulating 3 future timelines at 18-month horizon...\n' }] } });
         await sleep(1800);
-        onEvent({ author: 'FutureSimulator', content: { parts: [{ text: 'Generating investor-grade narrative...\n' }] } });
+        onEvent({ type: 'message', author: 'FutureSimulator', content: { parts: [{ text: 'Generating investor-grade narrative...\n' }] } });
         await sleep(1200);
         const simText = `VERDICT: PURSUE
 
@@ -320,7 +320,7 @@ $500K SAFE at $4M cap to fund 18 months of runway, hire a GTM co-founder, and re
 
 **VERDICT: PURSUE — move immediately, the window is open.**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-        onEvent({ actions: { state_delta: { simulation_results: simText } } });
+        onEvent({ type: 'message', actions: { state_delta: { simulation_results: simText } } });
 
         onDone();
         return;

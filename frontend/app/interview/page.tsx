@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSession, generateUserId, generateSessionId } from '@/lib/adk';
-import ThemeToggle from '@/components/ThemeToggle';
+import Navbar from '@/components/Navbar';
 
 const QUESTIONS = [
   {
@@ -144,19 +144,7 @@ export default function InterviewPage() {
 
   return (
     <div className="interview-page">
-      {/* Topbar */}
-      <header className="topbar">
-        <button onClick={() => router.push('/')} className="topbar-logo" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <svg className="topbar-logo-icon" viewBox="0 0 22 22" fill="none">
-            <path d="M11 2L18 6.5V15.5L11 20L4 15.5V6.5L11 2Z" fill="none" stroke="#6C63FF" strokeWidth="1.5"/>
-            <path d="M11 6L15.5 8.75V14.25L11 17L6.5 14.25V8.75L11 6Z" fill="#6C63FF" opacity="0.5"/>
-          </svg>
-          Future Founder Twin
-        </button>
-        <div className="topbar-spacer" />
-        <ThemeToggle />
-        <span className="session-dot active" title="Interview in progress" />
-      </header>
+      <Navbar sessionStatus="active" showLinks={false} />
 
       <div className="interview-body">
         {/* Demo Presets Row */}
@@ -188,24 +176,6 @@ export default function InterviewPage() {
           <span className="progress-step-label">Step {currentQ + 1} of {QUESTIONS.length}</span>
         </div>
 
-        {/* Completed answers */}
-        {currentQ > 0 && (
-          <div className="completed-answers">
-            {answers.slice(0, currentQ).map((ans, i) =>
-              ans ? (
-                <div key={i} className="completed-qa">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div className="cqa-q">Q{i + 1} — {QUESTIONS[i].label}</div>
-                    <button onClick={() => handleEdit(i)} className="btn-edit" title="Edit this answer">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                  </div>
-                  <div className="cqa-a">{ans}</div>
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
 
         {/* Current question */}
         <div className="question-card">
@@ -269,6 +239,29 @@ export default function InterviewPage() {
             )}
           </div>
         </div>
+
+        {/* Completed answers */}
+        {currentQ > 0 && (
+          <div className="completed-answers" style={{ marginTop: 24 }}>
+            {answers
+              .slice(0, currentQ)
+              .map((ans, i) => ({ ans, i }))
+              .reverse()
+              .map(({ ans, i }) =>
+                ans ? (
+                  <div key={i} className="completed-qa">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="cqa-q">Q{i + 1} — {QUESTIONS[i].label}</div>
+                      <button onClick={() => handleEdit(i)} className="btn-edit" title="Edit this answer">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2-2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                      </button>
+                    </div>
+                    <div className="cqa-a">{ans}</div>
+                  </div>
+                ) : null
+              )}
+          </div>
+        )}
       </div>
     </div>
   );
