@@ -10,7 +10,31 @@ from .prompts import (
     SIMULATION_INSTRUCTION,
 )
 
-MODEL = "gemini-3.1-flash-lite"
+import logging
+from typing import AsyncGenerator
+from google.adk.models.base_llm import BaseLlm
+from google.adk.models.registry import LLMRegistry
+
+class FallbackLlm(BaseLlm):
+    model: str = "fallback-llm"
+    models: list[str] = ["gemini-3.1-flash-lite", "gemma-4-31b"]
+
+    async def generate_content_async(self, llm_request, stream: bool = False) -> AsyncGenerator:
+        last_error = None
+        for model_name in self.models:
+            try:
+                llm = LLMRegistry.new_llm(model_name)
+                async for chunk in llm.generate_content_async(llm_request, stream):
+                    yield chunk
+                return
+            except Exception as e:
+                logging.warning(f"Model {model_name} failed: {e}. Falling back...")
+                last_error = e
+        if last_error:
+            raise last_error
+
+MODEL = FallbackLlm()
+
 
 # ─── Agent 1: Founder Profiler ───────────────────────────────────────────────
 # Extracts structured profile from interview answers
