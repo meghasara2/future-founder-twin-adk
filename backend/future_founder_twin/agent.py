@@ -181,3 +181,13 @@ Do not attempt to answer directly. Always delegate.
     description="Phase 2 orchestrator.",
     sub_agents=[pipeline_phase_2],
 )
+
+root_agent = LlmAgent(
+    name="FutureFounderTwin",
+    model=MODEL,
+    instruction="""
+You are the root orchestrator. Route requests to FutureFounderTwinPhase1 or FutureFounderTwinPhase2 as requested.
+""",
+    description="Root orchestrator.",
+    sub_agents=[phase_1_root, phase_2_root],
+)

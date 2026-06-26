@@ -408,8 +408,9 @@ export default function ResultsPage() {
             <div className="inline-error">⚠ {error}</div>
           )}
 
-          {/* Sections */}
-          {selectedAgent === 'FounderProfiler' && (
+          {/* Sections — while running show selected agent view, when done show all */}
+
+          {(isDone || selectedAgent === 'FounderProfiler') && (
             results.founderSummary ? (
               <ResultCard icon="👤" title="Founder Profile" badge="FounderProfiler" id="sec-founder">
                 <ResultText text={results.founderSummary} />
@@ -419,7 +420,7 @@ export default function ResultsPage() {
             ) : null
           )}
 
-          {selectedAgent === 'MarketDiscovery' && (
+          {(isDone || selectedAgent === 'MarketDiscovery') && (
             results.marketAnalysis ? (
               <ResultCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" id="sec-market">
                 {results.searchSources && results.searchSources.length > 0 && (
@@ -432,7 +433,7 @@ export default function ResultsPage() {
             ) : null
           )}
 
-          {selectedAgent === 'MVPArchitect' && (
+          {(isDone || selectedAgent === 'MVPArchitect') && (
             results.mvpPlan ? (
               <ResultCard icon="🏗" title="MVP Plan" badge="MVPArchitect" id="sec-mvp">
                 <ResultText text={results.mvpPlan} />
@@ -442,7 +443,7 @@ export default function ResultsPage() {
             ) : null
           )}
 
-          {selectedAgent === 'RiskCritic' && (
+          {(isDone || selectedAgent === 'RiskCritic') && (
             results.riskAssessment ? (
               <ResultCard icon="⚠" title="Risk Assessment" badge="RiskCritic" id="sec-risk">
                 <ResultText text={results.riskAssessment} />
@@ -452,7 +453,7 @@ export default function ResultsPage() {
             ) : null
           )}
 
-          {selectedAgent === 'MVPArchitectRefined' && (
+          {(isDone || selectedAgent === 'MVPArchitectRefined') && (
             results.refinedMvpPlan || results.debateTranscript ? (
               <ResultCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" id="sec-refined">
                 {results.debateTranscript && (
@@ -467,7 +468,7 @@ export default function ResultsPage() {
             ) : null
           )}
 
-          {selectedAgent === 'EvaluationAgent' && (
+          {(isDone || selectedAgent === 'EvaluationAgent') && (
             results.evaluationResults ? (
               <ResultCard icon="◈" title="Evaluation" badge="EvaluationAgent" id="sec-eval">
                 <ScoreCard score={results.founderFitScore} dimensions={results.founderFitMatrix} />
@@ -488,7 +489,7 @@ export default function ResultsPage() {
             ) : null
           )}
 
-          {selectedAgent === 'FutureSimulator' && (
+          {(isDone || selectedAgent === 'FutureSimulator') && (
             <>
               {results.simulationResults ? (
                 <ResultCard icon="⏩" title="Future Simulation" badge="FutureSimulator" id="sec-sim">
