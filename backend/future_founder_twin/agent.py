@@ -10,7 +10,7 @@ from .prompts import (
     SIMULATION_INSTRUCTION,
 )
 
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-3.1-flash-lite"
 
 # ─── Agent 1: Founder Profiler ───────────────────────────────────────────────
 # Extracts structured profile from interview answers
