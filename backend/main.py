@@ -15,17 +15,6 @@ if not api_keys:
 else:
     print(f"INFO: Loaded {len(api_keys)} API key(s) for rate limit rotation.")
 
-# The CLI wrapper will handle the session/memory services via use_local_storage=False
-app = get_fast_api_app(
-    agents_dir=".",
-    web=False,
-    use_local_storage=False,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
-)
-
-# Add CORS explicitly for frontend
-from fastapi.middleware.cors import CORSMiddleware
-
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",
@@ -33,6 +22,17 @@ origins = [
 ]
 if os.getenv("FRONTEND_URL"):
     origins.append(os.getenv("FRONTEND_URL"))
+
+# The CLI wrapper will handle the session/memory services via use_local_storage=False
+app = get_fast_api_app(
+    agents_dir=".",
+    web=False,
+    use_local_storage=False,
+    allow_origins=origins,
+)
+
+# Add CORS explicitly for frontend
+from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
