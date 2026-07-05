@@ -10,9 +10,8 @@ import { AgentName, PipelineStatus } from '@/lib/types';
 import { Network, Search, HardDrive, BarChart, Users } from 'lucide-react';
 
 const DEMO_PIPELINE: PipelineStatus = {
-  FounderProfiler: 'pending', MarketDiscovery: 'pending', MVPArchitect: 'pending',
-  RiskCritic: 'pending', MVPArchitectRefined: 'pending', EvaluationAgent: 'pending',
-  FutureSimulator: 'pending',
+  FounderProfiler: 'pending', MarketDiscovery: 'pending',
+  PlanningCritic: 'pending', EvaluationSimulationAgent: 'pending',
 };
 
 interface PriorSession { idea: string; sessionId: string; }
@@ -43,8 +42,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     const ORDER: AgentName[] = [
-      'FounderProfiler', 'MarketDiscovery', 'MVPArchitect', 'RiskCritic',
-      'MVPArchitectRefined', 'EvaluationAgent', 'FutureSimulator',
+      'FounderProfiler', 'MarketDiscovery', 'PlanningCritic', 'EvaluationSimulationAgent',
     ];
     const interval = setInterval(() => {
       setDemoAgent(prev => {

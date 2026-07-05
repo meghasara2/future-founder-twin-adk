@@ -18,20 +18,31 @@ const TAB_CONFIG = {
   Conservative: { icon: ShieldAlert, color: 'var(--orange)', prob: '25%' },
 };
 
-function parseContent(text: string): Record<Tab, string> {
-  const get = (key: string, next?: string) => {
-    const re = next
-      ? new RegExp(`${key}[^:]*:[\\s\\S]*?(?=${next}|VERDICT|$)`, 'i')
-      : new RegExp(`${key}[^:]*:[\\s\\S]*?(?=VERDICT|$)`, 'i');
-    const m = text.match(re);
-    return m ? m[0].replace(new RegExp(`^${key}[^:]*:\\s*`, 'i'), '').trim().slice(0, 600) : '';
-  };
+function parseContent(text: string): { content: Record<Tab, string>, fallback: string } {
+  // Strip the investor brief block precisely (it has 3 borders: top, under-title, and bottom)
+  // We use non-greedy matching to capture exactly those 3 borders and not eat the rest of the text.
+  const cleanText = text.replace(/━{10,}\s*INVESTOR BRIEF[\s\S]*?━{10,}[\s\S]*?━{10,}/gi, '').trim();
+
+  // Match section headers in all formats the model might use, including inline without newlines:
+  const sectionRe = /(?:#{1,3}\s*)?(?:🟢\s*|🟡\s*|🔴\s*)?(?:\*\*?)?(Optimistic|Realistic|Conservative)\s*(?:Path|Timeline|Scenario|Case)?(?:\*\*?)?[\s:*]*(?:\n|\s+)([\s\S]*?)(?=(?:#{1,3}\s*)?(?:🟢\s*|🟡\s*|🔴\s*)?(?:\*\*?)?(?:Optimistic|Realistic|Conservative|VERDICT|Verdict)\b|━{10,}|$)/gi;
+
+  const found: Partial<Record<Tab, string>> = {};
+  let match;
+  while ((match = sectionRe.exec(cleanText)) !== null) {
+    const key = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase() as Tab;
+    if (!found[key]) found[key] = match[2].trim().slice(0, 800);
+  }
   return {
-    Optimistic:   get('Optimistic',   'Realistic'),
-    Realistic:    get('Realistic',    'Conservative'),
-    Conservative: get('Conservative', undefined),
+    content: {
+      Optimistic:   found.Optimistic   || '',
+      Realistic:    found.Realistic    || '',
+      Conservative: found.Conservative || '',
+    },
+    fallback: cleanText
   };
 }
+
+
 
 const VERDICT_CONFIG = {
   PURSUE: { color: 'var(--green)', label: 'PURSUE' },
@@ -51,7 +62,7 @@ function parseMilestones(text: string): { month: string; event: string }[] {
 
 export default function SimulationCards({ simulationText, verdict }: SimulationCardsProps) {
   const [flipped, setFlipped] = useState<Record<Tab, boolean>>({ Optimistic: false, Realistic: false, Conservative: false });
-  const content = parseContent(simulationText);
+  const { content, fallback } = parseContent(simulationText);
   const vc = verdict ? VERDICT_CONFIG[verdict] : null;
 
   const toggleFlip = (tab: Tab) => {
@@ -122,7 +133,7 @@ export default function SimulationCards({ simulationText, verdict }: SimulationC
                     ) : (
                       <div className="sim-text markdown-body small">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {content[tab] || simulationText.slice(0, 600)}
+                          {content[tab] || (tab === 'Realistic' ? (fallback.slice(0, 800) || "Simulation text not found.") : "Specific timeline not provided by model.")}
                         </ReactMarkdown>
                       </div>
                     )}

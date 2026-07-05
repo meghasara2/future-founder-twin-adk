@@ -6,18 +6,14 @@ import {
 import { AgentName, PipelineStatus, AGENT_DISPLAY_NAMES, AGENT_DESCRIPTIONS } from '@/lib/types';
 
 const ORDER: AgentName[] = [
-  'FounderProfiler', 'MarketDiscovery', 'MVPArchitect', 'RiskCritic',
-  'MVPArchitectRefined', 'EvaluationAgent', 'FutureSimulator',
+  'FounderProfiler', 'MarketDiscovery', 'PlanningCritic', 'EvaluationSimulationAgent'
 ];
 
 const AGENT_ICON: Record<AgentName, React.ReactNode> = {
   FounderProfiler:    <Dna           size={16} strokeWidth={1.8} />,
   MarketDiscovery:    <Search        size={16} strokeWidth={1.8} />,
-  MVPArchitect:       <Building2     size={16} strokeWidth={1.8} />,
-  RiskCritic:         <AlertTriangle size={16} strokeWidth={1.8} />,
-  MVPArchitectRefined:<PenLine       size={16} strokeWidth={1.8} />,
-  EvaluationAgent:    <BarChart3     size={16} strokeWidth={1.8} />,
-  FutureSimulator:    <Rocket        size={16} strokeWidth={1.8} />,
+  PlanningCritic:     <Building2     size={16} strokeWidth={1.8} />,
+  EvaluationSimulationAgent:    <Rocket        size={16} strokeWidth={1.8} />,
 };
 
 interface GlowingPipelineProps {

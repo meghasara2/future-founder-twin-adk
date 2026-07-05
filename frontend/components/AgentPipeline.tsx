@@ -2,8 +2,7 @@
 import { AgentName, PipelineStatus, AGENT_DISPLAY_NAMES, AGENT_DESCRIPTIONS } from '@/lib/types';
 
 const ORDER: AgentName[] = [
-  'FounderProfiler','MarketDiscovery','MVPArchitect','RiskCritic',
-  'MVPArchitectRefined','EvaluationAgent','FutureSimulator',
+  'FounderProfiler', 'MarketDiscovery', 'PlanningCritic', 'EvaluationSimulationAgent',
 ];
 
 export default function AgentPipeline({ pipelineStatus }: { pipelineStatus: PipelineStatus }) {

@@ -10,11 +10,8 @@ export interface HistoryEntry {
   score: number | null;
   founderSummary: string | null;
   marketAnalysis: string | null;
-  mvpPlan: string | null;
-  riskAssessment: string | null;
-  refinedMvpPlan: string | null;
-  evaluationResults: string | null;
-  simulationResults: string | null;
+  planningCriticResult: string | null;
+  evaluationSimulationResults: string | null;
   investorBrief: string | null;
   elapsedSeconds: number;
 }
@@ -45,13 +42,10 @@ const VERDICT_COLOR: Record<string, string> = {
 };
 
 const CHAPTERS = [
-  { key: 'founderSummary',    icon: '🧬', title: 'The Founder' },
-  { key: 'marketAnalysis',    icon: '🔍', title: 'The Market' },
-  { key: 'mvpPlan',           icon: '🏗',  title: 'The Blueprint' },
-  { key: 'riskAssessment',    icon: '⚠️',  title: 'The Risks' },
-  { key: 'refinedMvpPlan',    icon: '✏️',  title: 'The Refined Plan' },
-  { key: 'evaluationResults', icon: '📊',  title: 'The Score' },
-  { key: 'simulationResults', icon: '🚀',  title: 'The Futures' },
+  { key: 'founderSummary',              icon: '👤', title: 'Founder Profile' },
+  { key: 'marketAnalysis',              icon: '🔍', title: 'Market Analysis' },
+  { key: 'planningCriticResult',        icon: '🏗',  title: 'MVP Plan & Assessment' },
+  { key: 'evaluationSimulationResults', icon: '◈',  title: 'Evaluation & Simulation' },
 ] as const;
 
 function Chapter({ icon, title, text }: { icon: string; title: string; text: string }) {
@@ -90,9 +84,13 @@ function HistoryCard({ entry, idx }: { entry: HistoryEntry; idx: number }) {
           </div>
         </div>
         <div className="hist-card-right">
-          {entry.verdict && (
+          {entry.verdict ? (
             <span className="hist-verdict" style={{ color: VERDICT_COLOR[entry.verdict] }}>
               {entry.verdict}
+            </span>
+          ) : (
+            <span className="hist-verdict" style={{ color: 'var(--text-dim)', border: '1px dashed var(--text-dim)' }}>
+              INCOMPLETE
             </span>
           )}
           {entry.score != null && (

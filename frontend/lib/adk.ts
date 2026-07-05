@@ -111,18 +111,20 @@ export function getAgentFromEvent(event: ADKEvent): string | null {
   return event.author || null;
 }
 
-// Extract text content from SSE event
+// Extract text content from SSE event (excludes thought/reasoning tokens from Gemini 2.5)
 export function getTextFromEvent(event: ADKEvent): string {
   if (!event.content?.parts) return '';
   return event.content.parts
-    .filter(p => p.text)
+    .filter(p => p.text && !p.thought)
     .map(p => p.text)
     .join('');
 }
 
 // Extract state updates from SSE event
+// IMPORTANT: ADK serializes Event with model_dump_json(by_alias=True) and alias_generator=to_camel
+// so Python field  state_delta  →  JSON key  stateDelta
 export function getStateDeltaFromEvent(event: ADKEvent): Record<string, string> {
-  return event.actions?.state_delta || {};
+  return (event.actions?.stateDelta as Record<string, string>) || {};
 }
 
 // Generate stable IDs for the session
@@ -152,18 +154,37 @@ export function parseSearchSources(marketAnalysis: string): string[] {
     .map(line => line.replace(/^•\s*/, '').trim());
 }
 
-// Parse score from "EVALUATION SCORE: 72/100" line
+// Parse score from evaluation results — tries multiple formats
 export function parseScoreFromEvaluation(evaluationResults: string): number | null {
-  const match = evaluationResults.match(/EVALUATION SCORE:\s*(\d+)\/100/);
-  return match ? parseInt(match[1], 10) : null;
+  // Try 'EVALUATION SCORE: 72/100' format (our instructed format)
+  let match = evaluationResults.match(/EVALUATION SCORE:\s*(\d+)\/100/);
+  if (match) return parseInt(match[1], 10);
+  // Try 'Total Score: 72/100' or 'Total: 72'
+  match = evaluationResults.match(/[Tt]otal\s+[Ss]core:\s*(\d+)(?:\/100)?/);
+  if (match) return parseInt(match[1], 10);
+  // Try 'Score: 72/100'
+  match = evaluationResults.match(/[Ss]core:\s*(\d+)\/100/);
+  if (match) return parseInt(match[1], 10);
+  return null;
 }
 
 // Parse the dimension table rows into FounderFitDimension[]
 export function parseFounderFitMatrix(evaluationResults: string): FounderFitDimension[] | null {
-  // Look for table rows like "| Technical Fit  | 20   | rationale"
-  const rows = [...evaluationResults.matchAll(/\|\s*([^|]+)\s*\|\s*(\d+)\/25\s*\|\s*([^|]+)\s*\|/g)];
-  if (!rows.length) return null;
-  return rows.map(row => ({
+  // Match table rows like "| Technical Fit | 20/25 | rationale |" or "| Technical Fit | 20 | rationale |"
+  const rows = [
+    ...evaluationResults.matchAll(/\|\s*([^|\n]+?)\s*\|\s*(\d+)\/25\s*\|\s*([^|\n]+?)\s*\|/g),
+    ...evaluationResults.matchAll(/\|\s*(Technical Fit|Execution Fit|Market Timing|Risk.Adjusted)[^|]*\|\s*(\d+)\s*\|\s*([^|\n]+?)\s*\|/g),
+  ];
+  // Deduplicate by dimension name
+  const seen = new Set<string>();
+  const unique = rows.filter(r => {
+    const key = r[1].trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  if (!unique.length) return null;
+  return unique.map(row => ({
     dimension: row[1].trim(),
     score: parseInt(row[2], 10),
     maxScore: 25,
@@ -179,8 +200,14 @@ export function parseVerdict(simulationResults: string): 'PURSUE' | 'PIVOT' | 'P
   return null;
 }
 
-// Parse investor brief from simulation results (everything inside the ━ borders)
+// Parse investor brief from simulation results
 export function parseInvestorBrief(simulationResults: string): string | null {
-  const match = simulationResults.match(/(━{10,}[\s\S]*?━{10,})/);
-  return match ? match[1].trim() : null;
+  // The brief has 3 ━━━ border lines: top separator, sub-header separator, and bottom.
+  // Use greedy match to capture from first ━━━ to LAST ━━━ (full brief).
+  const borderMatch = simulationResults.match(/(━{10,}[\s\S]*━{10,})/);
+  if (borderMatch) return borderMatch[1].trim();
+  // Fallback: look for INVESTOR BRIEF section header
+  const idx = simulationResults.indexOf('INVESTOR BRIEF');
+  if (idx !== -1) return simulationResults.slice(idx).trim();
+  return null;
 }

@@ -1,7 +1,4 @@
-import json
 from typing import Optional
-
-
 def save_founder_profile(
     technical_background: str,
     idea_description: str,
@@ -25,21 +22,27 @@ def save_founder_profile(
         biggest_fear: Their stated biggest concern about pursuing this idea
 
     Returns:
-        Confirmation dict with the saved profile summary
+        Formatted profile summary string for downstream agents
     """
     try:
-        profile = {
-            "technical_background": technical_background,
-            "idea_description": idea_description,
-            "idea_category": idea_category,
-            "runway_months": runway_months,
-            "has_budget": has_budget,
-            "has_shipped_product": has_shipped_product,
-            "biggest_fear": biggest_fear,
-        }
-        return {"status": "saved", "profile": profile, "message": "Founder profile captured successfully."}
+        budget_str = "Yes" if has_budget else "No"
+        shipped_str = "Yes" if has_shipped_product else "No"
+        summary = f"""## Founder Profile
+
+**Technical Background:** {technical_background}
+
+**Idea:** {idea_description}
+**Category:** {idea_category}
+
+**Runway:** {runway_months} months
+**Has Budget:** {budget_str}
+**Has Shipped Product:** {shipped_str}
+
+**Biggest Fear:** {biggest_fear}"""
+        return {"status": "saved", "summary": summary, "message": "Founder profile saved successfully."}
     except Exception as e:
         return {"error": str(e), "status": "failed"}
+
 
 
 def calculate_founder_fit_score(

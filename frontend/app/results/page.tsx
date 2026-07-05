@@ -17,20 +17,17 @@ import { saveToHistory } from '@/components/HistoryPanel';
 import {
   runAgentSSE, getAgentFromEvent, getStateDeltaFromEvent, getTextFromEvent,
   parseSearchSources, parseScoreFromEvaluation, parseFounderFitMatrix,
-  parseVerdict, parseInvestorBrief,
+  parseVerdict, parseInvestorBrief, getSessionState
 } from '@/lib/adk';
 import { AgentName, AgentStatus, ParsedResults, PipelineStatus } from '@/lib/types';
 
 const DEFAULT_PIPELINE: PipelineStatus = {
-  FounderProfiler: 'pending', MarketDiscovery: 'pending', MVPArchitect: 'pending',
-  RiskCritic: 'pending', MVPArchitectRefined: 'pending', EvaluationAgent: 'pending', FutureSimulator: 'pending',
+  FounderProfiler: 'pending', MarketDiscovery: 'pending', PlanningCritic: 'pending', EvaluationSimulationAgent: 'pending'
 };
 
 const AGENT_KEYS: Record<string, AgentName> = {
   FounderProfiler: 'FounderProfiler', MarketDiscovery: 'MarketDiscovery',
-  MVPArchitect: 'MVPArchitect', RiskCritic: 'RiskCritic',
-  MVPArchitectRefined: 'MVPArchitectRefined', EvaluationAgent: 'EvaluationAgent',
-  FutureSimulator: 'FutureSimulator',
+  PlanningCritic: 'PlanningCritic', EvaluationSimulationAgent: 'EvaluationSimulationAgent'
 };
 
 function ResultCard({ icon, title, badge, children, id }: {
@@ -69,9 +66,13 @@ function SkeletonCard({ icon, title, badge }: { icon: string; title: string; bad
 }
 
 function ResultText({ text }: { text: string }) {
+  // Ensure critique/timeline emojis always start on a new line 
+  // (faster models sometimes collapse newlines and render them inline)
+  const formattedText = text ? text.replace(/([^\n])\s*(🟢|🔴|🟡)/g, '$1\n\n$2') : '';
+  
   return (
     <div className="result-text markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{formattedText}</ReactMarkdown>
     </div>
   );
 }
@@ -82,9 +83,9 @@ export default function ResultsPage() {
   const [phase, setPhase] = useState<'phase1' | 'awaiting_defense' | 'phase2' | 'done'>('phase1');
   const [defenseText, setDefenseText] = useState('');
   const [results, setResults] = useState<ParsedResults>({
-    founderSummary: null, marketAnalysis: null, searchSources: null, mvpPlan: null,
-    riskAssessment: null, refinedMvpPlan: null, evaluationResults: null, founderFitMatrix: null,
-    simulationResults: null, investorBrief: null, founderFitScore: null, verdict: null, debateTranscript: null
+    founderSummary: null, marketAnalysis: null, searchSources: null, planningCriticResult: null,
+    evaluationSimulationResults: null, founderFitMatrix: null,
+    investorBrief: null, founderFitScore: null, verdict: null, debateTranscript: null
   });
   const [isDone, setIsDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +97,7 @@ export default function ResultsPage() {
   const [selectedAgent, setSelectedAgent] = useState<AgentName | null>(null);
   const startedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeAgentRef = useRef<AgentName | null>(null);
 
   const setStatus = (name: AgentName, status: AgentStatus) =>
     setPipeline(prev => ({ ...prev, [name]: status }));
@@ -108,6 +110,7 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!isDone) return;
     if (timerRef.current) clearInterval(timerRef.current);
+    setError(null);  // Clear any transient quota errors — analysis completed successfully
     // Save full analysis to localStorage history
     const msg = sessionStorage.getItem('fft_message') || '';
     // Extract idea title: first line or first 80 chars of the message
@@ -120,15 +123,13 @@ export default function ResultsPage() {
       score: results.founderFitScore,
       founderSummary: results.founderSummary,
       marketAnalysis: results.marketAnalysis,
-      mvpPlan: results.mvpPlan,
-      riskAssessment: results.riskAssessment,
-      refinedMvpPlan: results.refinedMvpPlan,
-      evaluationResults: results.evaluationResults,
-      simulationResults: results.simulationResults,
+      planningCriticResult: results.planningCriticResult,
+      evaluationSimulationResults: results.evaluationSimulationResults,
       investorBrief: results.investorBrief,
       elapsedSeconds: elapsed,
     });
   }, [isDone]);
+
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -142,12 +143,69 @@ export default function ResultsPage() {
       return;
     }
     setIsConnecting(false);
+
+    // State Polling Loop
+    const pollInterval = setInterval(async () => {
+      try {
+        const state = await getSessionState(uid, sid);
+        
+        setResults(p => {
+          let updated = { ...p };
+          if (state.founder_profile_summary) updated.founderSummary = state.founder_profile_summary;
+          if (state.market_analysis) {
+            updated.marketAnalysis = state.market_analysis;
+            const sources = parseSearchSources(state.market_analysis);
+            if (sources.length) updated.searchSources = sources;
+          }
+          if (state.planning_critic_result) updated.planningCriticResult = state.planning_critic_result;
+          
+          if (state.evaluation_simulation_results) {
+            updated.evaluationSimulationResults = state.evaluation_simulation_results;
+            updated.founderFitMatrix = parseFounderFitMatrix(state.evaluation_simulation_results) || p.founderFitMatrix;
+            updated.founderFitScore = parseScoreFromEvaluation(state.evaluation_simulation_results) || p.founderFitScore;
+            updated.verdict = parseVerdict(state.evaluation_simulation_results) || p.verdict;
+            updated.investorBrief = parseInvestorBrief(state.evaluation_simulation_results) || p.investorBrief;
+          }
+          
+          if (state.debate_transcript) {
+            try { updated.debateTranscript = JSON.parse(state.debate_transcript); } catch (e) {}
+          }
+          return updated;
+        });
+
+        setPipeline(prev => {
+          const next = { ...prev };
+          if (state.founder_profile_summary) next.FounderProfiler = 'done';
+          if (state.market_analysis) next.MarketDiscovery = 'done';
+          if (state.planning_critic_result) next.PlanningCritic = 'done';
+          if (state.evaluation_simulation_results) next.EvaluationSimulationAgent = 'done';
+          return next;
+        });
+      } catch (e) {
+        console.error("Failed to poll state", e);
+      }
+    }, 5000);
+
+    // Clean up polling when component unmounts
+    return () => clearInterval(pollInterval);
+  }, []);
+
+  const sseStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (sseStartedRef.current) return;   // prevent React Strict Mode double-fire
+    sseStartedRef.current = true;
+    const uid = sessionStorage.getItem('fft_user_id');
+    const sid = sessionStorage.getItem('fft_session_id');
+    const msg = sessionStorage.getItem('fft_message');
+    if (!uid || !sid || !msg) return;
     runAgentSSE(uid, sid, msg, 'FutureFounderTwinPhase1',
       (event) => {
         const agent = getAgentFromEvent(event);
         if (agent && AGENT_KEYS[agent]) {
-          if (agent !== activeAgent) { 
+          if (agent !== activeAgentRef.current) { 
             setLiveThought(''); 
+            activeAgentRef.current = AGENT_KEYS[agent];
             setActiveAgent(AGENT_KEYS[agent]);
             setSelectedAgent(AGENT_KEYS[agent]);
           }
@@ -156,9 +214,18 @@ export default function ResultsPage() {
         // Process text chunks for live thought
         const chunk = getTextFromEvent(event);
         if (chunk) {
+          if (chunk.includes('[ERROR: QUOTA_EXCEEDED]')) {
+             setError("Free Tier Quota Limit Reached. Please wait a minute or provide a new API key.");
+             setPipeline(prev => {
+               const u = { ...prev };
+               (Object.keys(u) as AgentName[]).forEach(k => { if (u[k] === 'running') u[k] = 'error'; });
+               return u;
+             });
+             return;
+          }
           setLiveThought(prev => (prev + chunk).slice(-600));
           // Only add text to logs if it's the start of a sentence or a full thought (simplistic check for mock)
-          if (chunk.includes('\\n')) {
+          if (chunk.includes('\n')) {
              setLogs(prev => [...prev, {
                id: Math.random().toString(), timestamp: Date.now(),
                agent: AGENT_KEYS[agent!] || 'System', type: 'info', message: chunk.trim()
@@ -191,10 +258,9 @@ export default function ResultsPage() {
           setResults(p => ({ ...p, marketAnalysis: d.market_analysis, searchSources: sources.length ? sources : p.searchSources }));
           setStatus('MarketDiscovery', 'done');
         }
-        if (d.mvp_plan) { setResults(p => ({ ...p, mvpPlan: d.mvp_plan })); setStatus('MVPArchitect', 'done'); }
-        if (d.risk_assessment) { setResults(p => ({ ...p, riskAssessment: d.risk_assessment })); setStatus('RiskCritic', 'done'); }
+        if (d.planning_critic_result) { setResults(p => ({ ...p, planningCriticResult: d.planning_critic_result })); setStatus('PlanningCritic', 'done'); }
       },
-      () => { setActiveAgent(null); setLiveThought(''); setPhase('awaiting_defense'); },
+      () => { setActiveAgent(null); setLiveThought(''); setPhase('awaiting_defense'); setError(null); },
       (err) => {
         setError(`Stream error: ${err.message}`);
         setPipeline(prev => {
@@ -217,8 +283,9 @@ export default function ResultsPage() {
       (event) => {
         const agent = getAgentFromEvent(event);
         if (agent && AGENT_KEYS[agent]) {
-          if (agent !== activeAgent) { 
+          if (agent !== activeAgentRef.current) { 
             setLiveThought(''); 
+            activeAgentRef.current = AGENT_KEYS[agent];
             setActiveAgent(AGENT_KEYS[agent]); 
             setSelectedAgent(AGENT_KEYS[agent]);
           }
@@ -226,8 +293,17 @@ export default function ResultsPage() {
         }
         const chunk = getTextFromEvent(event);
         if (chunk) {
+          if (chunk.includes('[ERROR: QUOTA_EXCEEDED]')) {
+             setError("Free Tier Quota Limit Reached. Please wait a minute or provide a new API key.");
+             setPipeline(prev => {
+               const u = { ...prev };
+               (Object.keys(u) as AgentName[]).forEach(k => { if (u[k] === 'running') u[k] = 'error'; });
+               return u;
+             });
+             return;
+          }
           setLiveThought(prev => (prev + chunk).slice(-600));
-          if (chunk.includes('\\n')) {
+          if (chunk.includes('\n')) {
              setLogs(prev => [...prev, {
                id: Math.random().toString(), timestamp: Date.now(),
                agent: AGENT_KEYS[agent!] || 'System', type: 'info', message: chunk.trim()
@@ -260,14 +336,15 @@ export default function ResultsPage() {
             console.error("Failed to parse debate transcript", e);
           }
         }
-        if (d.mvp_plan_refined) { setResults(p => ({ ...p, refinedMvpPlan: d.mvp_plan_refined })); setStatus('MVPArchitectRefined', 'done'); }
-        if (d.evaluation_results) {
-          setResults(p => ({ ...p, evaluationResults: d.evaluation_results, founderFitMatrix: parseFounderFitMatrix(d.evaluation_results), founderFitScore: parseScoreFromEvaluation(d.evaluation_results) }));
-          setStatus('EvaluationAgent', 'done');
-        }
-        if (d.simulation_results) {
-          setResults(p => ({ ...p, simulationResults: d.simulation_results, verdict: parseVerdict(d.simulation_results), investorBrief: parseInvestorBrief(d.simulation_results) }));
-          setStatus('FutureSimulator', 'done');
+        if (d.evaluation_simulation_results) {
+          setResults(p => ({ ...p, 
+            evaluationSimulationResults: d.evaluation_simulation_results, 
+            founderFitMatrix: parseFounderFitMatrix(d.evaluation_simulation_results), 
+            founderFitScore: parseScoreFromEvaluation(d.evaluation_simulation_results),
+            verdict: parseVerdict(d.evaluation_simulation_results),
+            investorBrief: parseInvestorBrief(d.evaluation_simulation_results)
+          }));
+          setStatus('EvaluationSimulationAgent', 'done');
         }
       },
       () => { setActiveAgent(null); setLiveThought(''); setPhase('done'); setIsDone(true); },
@@ -279,11 +356,13 @@ export default function ResultsPage() {
     const element = document.querySelector('.results-main') as HTMLElement;
     if (!element) return;
     const html2pdf = (await import('html2pdf.js')).default;
+    // Get actual background color (prevents white text on white background in dark mode)
+    const bgColor = getComputedStyle(document.body).backgroundColor || '#0A0A0F';
     const opt = {
       margin:       10,
       filename:     'Future_Founder_Twin_Analysis.pdf',
       image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { scale: 2 },
+      html2canvas:  { scale: 2, backgroundColor: bgColor },
       jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
     };
     html2pdf().set(opt).from(element).save();
@@ -345,7 +424,7 @@ export default function ResultsPage() {
           onSelectAgent={setSelectedAgent}
         />
         <div className="gp-bar-footer">
-          <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{doneCount}/7 agents · {formatElapsed(elapsed)}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{doneCount}/4 agents · {formatElapsed(elapsed)}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {isDone && results.investorBrief && (
               <>
@@ -366,7 +445,7 @@ export default function ResultsPage() {
             <div className="defense-banner" style={{ marginBottom: 24, padding: 24, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--bg-surface)' }}>
               <h3 style={{ color: 'var(--red)', marginBottom: 8 }}>CRITICAL QUESTION FROM RISK CRITIC</h3>
               <p style={{ color: 'var(--text-1)', marginBottom: 16 }}>
-                {results.riskAssessment?.split('CRITICAL QUESTION:')[1]?.trim() || "Why should an investor believe you can pull this off?"}
+                {results.planningCriticResult?.split('CRITICAL QUESTION:')[1]?.trim() || "Why should an investor believe you can pull this off?"}
               </p>
               <textarea 
                 style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-1)' }}
@@ -398,7 +477,7 @@ export default function ResultsPage() {
             <div className="done-banner">
               <div className="done-check">✓</div>
               <div>
-                <p className="done-title">Analysis Complete — all 7 agents finished</p>
+                <p className="done-title">Analysis Complete — all 4 agents finished</p>
                 <p className="done-sub">Your investor brief is ready to copy.</p>
               </div>
             </div>
@@ -408,104 +487,71 @@ export default function ResultsPage() {
             <div className="inline-error">⚠ {error}</div>
           )}
 
-          {/* Sections — while running show selected agent view, when done show all */}
+          {/* Result Cards — show as soon as data is available, always visible once populated */}
 
-          {(isDone || selectedAgent === 'FounderProfiler') && (
-            results.founderSummary ? (
-              <ResultCard icon="👤" title="Founder Profile" badge="FounderProfiler" id="sec-founder">
-                <ResultText text={results.founderSummary} />
-              </ResultCard>
-            ) : pipeline.FounderProfiler === 'running' ? (
-              <SkeletonCard icon="👤" title="Founder Profile" badge="FounderProfiler" />
-            ) : null
-          )}
+          {/* Founder Profile: show if we have data OR it's currently loading */}
+          {results.founderSummary ? (
+            <ResultCard icon="👤" title="Founder Profile" badge="FounderProfiler" id="sec-founder">
+              <ResultText text={results.founderSummary} />
+            </ResultCard>
+          ) : pipeline.FounderProfiler === 'running' ? (
+            <SkeletonCard icon="👤" title="Founder Profile" badge="FounderProfiler" />
+          ) : null}
 
-          {(isDone || selectedAgent === 'MarketDiscovery') && (
-            results.marketAnalysis ? (
-              <ResultCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" id="sec-market">
-                {results.searchSources && results.searchSources.length > 0 && (
-                  <SearchSources sources={results.searchSources} />
-                )}
-                <ResultText text={results.marketAnalysis} />
-              </ResultCard>
-            ) : pipeline.MarketDiscovery === 'running' ? (
-              <SkeletonCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" />
-            ) : null
-          )}
+          {/* Market Analysis */}
+          {results.marketAnalysis ? (
+            <ResultCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" id="sec-market">
+              {results.searchSources && results.searchSources.length > 0 && (
+                <SearchSources sources={results.searchSources} />
+              )}
+              <ResultText text={results.marketAnalysis} />
+            </ResultCard>
+          ) : pipeline.MarketDiscovery === 'running' ? (
+            <SkeletonCard icon="🔍" title="Market Analysis" badge="MarketDiscovery" />
+          ) : null}
 
-          {(isDone || selectedAgent === 'MVPArchitect') && (
-            results.mvpPlan ? (
-              <ResultCard icon="🏗" title="MVP Plan" badge="MVPArchitect" id="sec-mvp">
-                <ResultText text={results.mvpPlan} />
-              </ResultCard>
-            ) : pipeline.MVPArchitect === 'running' ? (
-              <SkeletonCard icon="🏗" title="MVP Plan" badge="MVPArchitect" />
-            ) : null
-          )}
+          {/* MVP Plan & Assessment */}
+          {results.planningCriticResult ? (
+            <ResultCard icon="🏗" title="MVP Plan & Assessment" badge="PlanningCritic" id="sec-planning">
+              <ResultText text={results.planningCriticResult} />
+            </ResultCard>
+          ) : pipeline.PlanningCritic === 'running' ? (
+            <SkeletonCard icon="🏗" title="MVP Plan & Assessment" badge="PlanningCritic" />
+          ) : null}
 
-          {(isDone || selectedAgent === 'RiskCritic') && (
-            results.riskAssessment ? (
-              <ResultCard icon="⚠" title="Risk Assessment" badge="RiskCritic" id="sec-risk">
-                <ResultText text={results.riskAssessment} />
-              </ResultCard>
-            ) : pipeline.RiskCritic === 'running' ? (
-              <SkeletonCard icon="⚠" title="Risk Assessment" badge="RiskCritic" />
-            ) : null
-          )}
-
-          {(isDone || selectedAgent === 'MVPArchitectRefined') && (
-            results.refinedMvpPlan || results.debateTranscript ? (
-              <ResultCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" id="sec-refined">
+          {/* Evaluation & Simulation */}
+          {results.evaluationSimulationResults ? (
+            <>
+              <ResultCard icon="◈" title="Evaluation & Future Simulation" badge="EvaluationSimulationAgent" id="sec-eval">
                 {results.debateTranscript && (
                   <AgentDebate transcript={results.debateTranscript} />
                 )}
-                {results.refinedMvpPlan && (
-                  <ResultText text={results.refinedMvpPlan} />
-                )}
-              </ResultCard>
-            ) : pipeline.MVPArchitectRefined === 'running' ? (
-              <SkeletonCard icon="🔄" title="MVP Plan (Revised)" badge="MVPArchitectRefined" />
-            ) : null
-          )}
-
-          {(isDone || selectedAgent === 'EvaluationAgent') && (
-            results.evaluationResults ? (
-              <ResultCard icon="◈" title="Evaluation" badge="EvaluationAgent" id="sec-eval">
                 <ScoreCard score={results.founderFitScore} dimensions={results.founderFitMatrix} />
                 {results.founderFitMatrix && results.founderFitMatrix.length > 0 && (
                   <FounderFitMatrix
                     dimensions={results.founderFitMatrix}
-                    gateDecision={results.evaluationResults.includes('GATE DECISION:')
-                      ? results.evaluationResults.split('GATE DECISION:')[1]?.split('\n')[0]?.trim()
+                    gateDecision={results.evaluationSimulationResults.includes('GATE DECISION:')
+                      ? results.evaluationSimulationResults.split('GATE DECISION:')[1]?.split('\n')[0]?.trim()
                       : undefined}
-                    evaluationSummary={results.evaluationResults.includes('EVALUATION SUMMARY:')
-                      ? results.evaluationResults.split('EVALUATION SUMMARY:')[1]?.split('GATE')[0]?.trim()
+                    evaluationSummary={results.evaluationSimulationResults.includes('EVALUATION SUMMARY:')
+                      ? results.evaluationSimulationResults.split('EVALUATION SUMMARY:')[1]?.split('GATE')[0]?.trim()
                       : undefined}
                   />
                 )}
+                <div style={{ marginTop: '32px' }}>
+                  <SimulationCards simulationText={results.evaluationSimulationResults} verdict={results.verdict} />
+                </div>
               </ResultCard>
-            ) : pipeline.EvaluationAgent === 'running' ? (
-              <SkeletonCard icon="◈" title="Evaluation" badge="EvaluationAgent" />
-            ) : null
-          )}
-
-          {(isDone || selectedAgent === 'FutureSimulator') && (
-            <>
-              {results.simulationResults ? (
-                <ResultCard icon="⏩" title="Future Simulation" badge="FutureSimulator" id="sec-sim">
-                  <SimulationCards simulationText={results.simulationResults} verdict={results.verdict} />
-                </ResultCard>
-              ) : pipeline.FutureSimulator === 'running' ? (
-                <SkeletonCard icon="⏩" title="Future Simulation" badge="FutureSimulator" />
-              ) : null}
 
               {results.investorBrief && (
-                <ResultCard icon="📄" title="Investor Brief" badge="FutureSimulator" id="sec-brief">
+                <ResultCard icon="📄" title="Investor Brief" badge="EvaluationSimulationAgent" id="sec-brief">
                   <InvestorBrief brief={results.investorBrief} />
                 </ResultCard>
               )}
             </>
-          )}
+          ) : pipeline.EvaluationSimulationAgent === 'running' ? (
+            <SkeletonCard icon="◈" title="Evaluation & Future Simulation" badge="EvaluationSimulationAgent" />
+          ) : null}
           
           {/* Agent Console */}
           <AgentConsole logs={logs} isDone={isDone} />

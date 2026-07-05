@@ -232,7 +232,7 @@ export default function InterviewPage() {
                 </button>
                 {!submitting && (
                   <p className="analyze-subtext">
-                    Your idea will be analyzed by 7 specialized AI agents
+                    Your idea will be analyzed by 4 specialized AI agents
                   </p>
                 )}
               </div>

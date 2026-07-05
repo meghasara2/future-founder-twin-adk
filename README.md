@@ -1,4 +1,4 @@
-﻿# Future Founder Twin
+# Future Founder Twin
 
 [![Kaggle Capstone](https://img.shields.io/badge/Kaggle-AI_Agents_Intensive-blue.svg)](https://www.kaggle.com/competitions/vibecoding-agents-capstone-project)
 [![Google ADK](https://img.shields.io/badge/Powered_by-Google_ADK-red.svg)](https://github.com/google/agent-development-kit)
@@ -12,7 +12,9 @@ Most startups fail because founders build products nobody wants, or tackle marke
 
 ## 🏗️ Architecture
 
-The system uses the **Google Agent Development Kit (ADK)** to orchestrate 7 specialized agents. It implements a unique **Two-Phase Human-in-the-Loop** design. After Phase 1, the pipeline pauses, forcing the founder to defend their idea against the Risk Critic's questions before Phase 2 generates the final evaluation.
+The system uses the **Google Agent Development Kit (ADK)** to orchestrate 4 specialized agents. It implements a unique **Two-Phase Human-in-the-Loop** design. After Phase 1, the pipeline pauses, forcing the founder to defend their idea against the Planning & Critique agent's questions before Phase 2 generates the final evaluation.
+
+**Architectural Decision:** We intentionally consolidated closely related responsibilities (e.g., Planner + Critic) into four specialized agents to reduce latency, lower token usage, and improve maintainability while preserving clear agent boundaries and ADK orchestration.
 
 \\\mermaid
 graph TD
@@ -20,14 +22,12 @@ graph TD
     UI -- SSE Stream --> ADK[FastAPI + Google ADK Backend]
     
     subgraph Phase 1: Research & Critique
-        A1[Founder Profiler] --> A2[Market Discovery]
-        A2 -- Uses Google Search --> A3[MVP Architect]
-        A3 --> A4[Risk Critic]
+        A1[Founder Profiler] --> A2[Market Intelligence]
+        A2 -- Uses Google Search --> A3[Planning & Critique]
     end
     
-    subgraph Phase 2: Refinement & Evaluation
-        A5[MVP Architect Revised] --> A6[Evaluation Agent]
-        A6 --> A7[Future Simulator]
+    subgraph Phase 2: Evaluation & Simulation
+        A4[Evaluation & Simulation Agent]
     end
     
     ADK --> Phase1
@@ -38,18 +38,15 @@ graph TD
     ADK -- State Delta Streams --> UI
 \\\
 
-## 🤖 The 7-Agent Pipeline
+## 🤖 The 4-Agent Pipeline
 
-Our application moves beyond a simple "chatbot" interface by chaining specialized agents, passing state via the ADK \InMemorySessionService\:
+Our application moves beyond a simple "chatbot" interface by chaining specialized agents, passing state via the ADK `InMemorySessionService`:
 
 1. **Founder Profiler**: Extracts technical skills, runway, and constraints from the user's initial interview.
-2. **Market Discovery**: Actively calls the \google_search\ tool to fetch live competitor data and estimate market size.
-3. **MVP Architect**: Designs a realistic, step-by-step product build plan tailored *specifically* to the founder's skill level.
-4. **Risk Critic**: Acts adversarially, finding the biggest flaws in the business model, marketing, or technical feasibility.
+2. **Market Intelligence**: Actively calls the `google_search` tool to fetch live competitor data and estimate market size.
+3. **Planning & Critique**: A dual-role agent that first designs a realistic MVP, then switches into an independent critic persona to identify the biggest flaws before producing a reconciled final plan.
    - *⏸️ HUMAN-IN-THE-LOOP PAUSE: The user must read the risks and write a defense.*
-5. **MVP Architect (Revised)**: Takes the user's defense and refines the original MVP plan to mitigate the risks.
-6. **Evaluation Agent**: Scores the founder across 4 strict dimensions: Market, Execution, Tech, and Risk, resulting in a quantitative Founder Fit Score.
-7. **Future Simulator**: Projects 3 possible timeline scenarios (Best, Worst, Realistic) and outputs the final Investor Brief and verdict (**PURSUE**, **PIVOT**, or **PAUSE**).
+4. **Evaluation & Simulation Agent**: Takes the user's defense and evaluates the founder across 4 strict dimensions. Projects 3 possible timeline scenarios (Best, Worst, Realistic) and outputs the final Investor Brief and verdict (**PURSUE**, **PIVOT**, or **PAUSE**).
 
 ---
 
@@ -58,7 +55,7 @@ Our application moves beyond a simple "chatbot" interface by chaining specialize
 - **Live Glowing Pipeline UI:** Watch the agents "think" in real-time via Server-Sent Events (SSE) stream.
 - **Analysis History (Memory):** Completed analyses are saved locally so you can compare multiple startup ideas.
 - **Markdown Export:** Full Investor Briefs are rendered beautifully and can be exported to PDF.
-- **Demo Presets:** One-click pre-filled scenarios for Kaggle judges to instantly test the 7-agent pipeline.
+- **Demo Presets:** One-click pre-filled scenarios for Kaggle judges to instantly test the 4-agent pipeline.
 
 ---
 
@@ -80,22 +77,30 @@ python -m venv .venv
 # Mac/Linux: source .venv/bin/activate
 
 pip install -r requirements.txt
-\\\
+```
 
-**API Key:**
-Create a \.env\ file in the \ackend/\ directory:
-\\\env
+**API Key & Rate Limits (Free Tier):**
+Because this pipeline runs 4 agents sequentially with complex prompts, it can hit the Google Gemini free-tier rate limits. To prevent this, you can provide multiple API keys. The backend will automatically rotate them on a 429 Resource Exhausted error, and employs exponential backoff.
+
+Create a `.env` file in the `backend/` directory:
+```env
 GOOGLE_API_KEY=your_gemini_api_key_here
-\\\
+GOOGLE_API_KEY_2=your_second_api_key_here  # Optional fallback
+GOOGLE_API_KEY_3=your_third_api_key_here   # Optional fallback
+```
 
 **Run Backend:**
-\\\ash
+```bash
 python main.py
 # Runs on http://localhost:8000
-\\\
+```
+
+### Troubleshooting
+- **Pipeline hangs / 429 Quota Exceeded:** Check the UI or backend logs. If you've hit your free tier quota across all keys, wait a minute before retrying, or add an additional API key.
+- **Connection Error:** Ensure the backend is running on port 8000.
 
 ### 3. Frontend Setup (Next.js)
-\\\ash
+```ash
 cd frontend
 npm install
 npm run dev
@@ -107,7 +112,7 @@ npm run dev
 ## 🏆 Kaggle Rubric Alignment
 
 This project was specifically engineered to max out the course grading rubric:
-- **Multi-Agent Systems:** 7 agents interacting sequentially.
+- **Multi-Agent Systems:** 4 agents interacting sequentially.
 - **Tool Usage:** Agent 2 performs grounded Google Searches.
 - **Sessions & State:** ADK Session state passed seamlessly between agents and the frontend.
 - **Memory:** \localStorage\ History Panel implementing session recall.
