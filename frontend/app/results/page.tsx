@@ -353,19 +353,33 @@ export default function ResultsPage() {
   };
 
   const exportPDF = async () => {
-    const element = document.querySelector('.results-main') as HTMLElement;
-    if (!element) return;
-    const html2pdf = (await import('html2pdf.js')).default;
-    // Get actual background color (prevents white text on white background in dark mode)
-    const bgColor = getComputedStyle(document.body).backgroundColor || '#0A0A0F';
-    const opt = {
-      margin:       10,
-      filename:     'Future_Founder_Twin_Analysis.pdf',
-      image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { scale: 2, backgroundColor: bgColor },
-      jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-    };
-    html2pdf().set(opt).from(element).save();
+    try {
+      const element = document.querySelector('.results-main') as HTMLElement;
+      if (!element) return;
+      
+      // Handle Next.js dynamic import resolution
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule;
+
+      const bgColor = getComputedStyle(document.body).backgroundColor || '#0A0A0F';
+      const opt = {
+        margin:       10,
+        filename:     'Future_Founder_Twin_Analysis.pdf',
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2, backgroundColor: bgColor, useCORS: true },
+        jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+      
+      if (typeof html2pdf === 'function') {
+        html2pdf().set(opt).from(element).save();
+      } else {
+        console.error("html2pdf is not a function:", html2pdf);
+        alert("Failed to initialize PDF exporter.");
+      }
+    } catch (err) {
+      console.error("PDF Export failed:", err);
+      alert("An error occurred while generating the PDF. See console for details.");
+    }
   };
 
   const formatElapsed = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
