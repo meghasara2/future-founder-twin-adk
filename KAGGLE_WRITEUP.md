@@ -40,30 +40,7 @@ The final deliverable is a structured **Investor Brief** — a one-page, formatt
 
 The system is built as a decoupled, two-tier architecture: a **FastAPI backend** running the Google ADK agent pipeline, and a **Next.js frontend** consuming the backend's Server-Sent Events (SSE) stream for real-time updates.
 
-```mermaid
-graph TD
-    User([Founder / User]) --> UI[Next.js Frontend - Vercel]
-    UI -- POST /run_sse --> BE[FastAPI + Google ADK - Render]
-
-    subgraph "Phase 1 — SequentialAgent: FutureFounderTwinPhase1"
-        A1[FounderProfiler LlmAgent] --> A2[MarketDiscovery LlmAgent]
-        A2 -- google_search tool --> A3[PlanningCritic LlmAgent]
-    end
-
-    subgraph "Phase 2 — SequentialAgent: FutureFounderTwinPhase2"
-        A4[EvaluationSimulationAgent LlmAgent]
-    end
-
-    BE --> Phase1
-    Phase1 -- PAUSE: Critical Defense Question --> UI
-    UI -- Founder types defense --> Phase2
-    Phase2 --> BE
-
-    BE -- output_key state --> SessionState[(ADK InMemorySessionService)]
-    SessionState -- context injected --> A2
-    SessionState -- context injected --> A3
-    SessionState -- context injected --> A4
-```
+![System Architecture](https://mermaid.ink/img/Z3JhcGggVEQKICAgIFVzZXIoW0ZvdW5kZXIgLyBVc2VyXSkgLS0+IFVJW05leHQuanMgRnJvbnRlbmQgLSBWZXJjZWxdCiAgICBVSSAtLSBQT1NUIC9ydW5fc3NlIC0tPiBCRVtGYXN0QVBJICsgR29vZ2xlIEFESyAtIFJlbmRlcl0KCiAgICBzdWJncmFwaCAiUGhhc2UgMSDDouKCrOKAnSBTZXF1ZW50aWFsQWdlbnQ6IEZ1dHVyZUZvdW5kZXJUd2luUGhhc2UxIgogICAgICAgIEExW0ZvdW5kZXJQcm9maWxlciBMbG1BZ2VudF0gLS0+IEEyW01hcmtldERpc2NvdmVyeSBMbG1BZ2VudF0KICAgICAgICBBMiAtLSBnb29nbGVfc2VhcmNoIHRvb2wgLS0+IEEzW1BsYW5uaW5nQ3JpdGljIExsbUFnZW50XQogICAgZW5kCgogICAgc3ViZ3JhcGggIlBoYXNlIDIgw6LigqzigJ0gU2VxdWVudGlhbEFnZW50OiBGdXR1cmVGb3VuZGVyVHdpblBoYXNlMiIKICAgICAgICBBNFtFdmFsdWF0aW9uU2ltdWxhdGlvbkFnZW50IExsbUFnZW50XQogICAgZW5kCgogICAgQkUgLS0+IFBoYXNlMQogICAgUGhhc2UxIC0tIFBBVVNFOiBDcml0aWNhbCBEZWZlbnNlIFF1ZXN0aW9uIC0tPiBVSQogICAgVUkgLS0gRm91bmRlciB0eXBlcyBkZWZlbnNlIC0tPiBQaGFzZTIKICAgIFBoYXNlMiAtLT4gQkUKCiAgICBCRSAtLSBvdXRwdXRfa2V5IHN0YXRlIC0tPiBTZXNzaW9uU3RhdGVbKEFESyBJbk1lbW9yeVNlc3Npb25TZXJ2aWNlKV0KICAgIFNlc3Npb25TdGF0ZSAtLSBjb250ZXh0IGluamVjdGVkIC0tPiBBMgogICAgU2Vzc2lvblN0YXRlIC0tIGNvbnRleHQgaW5qZWN0ZWQgLS0+IEEzCiAgICBTZXNzaW9uU3RhdGUgLS0gY29udGV4dCBpbmplY3RlZCAtLT4gQTQK)
 
 **Why Google ADK?** The ADK was selected because its `SequentialAgent` and `LlmAgent` primitives map directly to our phased pipeline design. The `output_key` mechanism on each `LlmAgent` allows the agent's response to be automatically written into the shared `InMemorySessionService` state, making all upstream context available to downstream agents without manual prompt stitching. This dramatically simplifies the orchestration logic and ensures architectural clarity (`agent.py:130-182`).
 
@@ -182,10 +159,8 @@ The two-phase design requires Phase 1's session state to survive the UI pause wh
 
 The application is deployed as two independent services:
 
-- **Frontend:** Deployed to **Vercel** at `[YOUR_VERCEL_URL]`. Next.js builds are served via Vercel's edge network. The `NEXT_PUBLIC_ADK_BACKEND_URL` environment variable points the frontend to the Render backend.
-- **Backend:** Deployed to **Render** at `[YOUR_RENDER_URL]`. The FastAPI server is started with `uvicorn` using the `PORT` environment variable injected by Render (`main.py:51`). A `/health` endpoint (`main.py:46-48`) serves as the Render health check to confirm liveness.
-
-> ⚙️ **[USER ACTION NEEDED]:** Replace `[YOUR_VERCEL_URL]` and `[YOUR_RENDER_URL]` with your actual deployed URLs before submitting.
+- **Frontend:** Deployed to **Vercel** at `https://adk.meghasara.me/`. Next.js builds are served via Vercel's edge network. The `NEXT_PUBLIC_ADK_BACKEND_URL` environment variable points the frontend to the Render backend.
+- **Backend:** Deployed to **Render**. The FastAPI server is started with `uvicorn` using the `PORT` environment variable injected by Render (`main.py:51`). A `/health` endpoint (`main.py:46-48`) serves as the Render health check to confirm liveness.
 
 ---
 
@@ -226,7 +201,5 @@ The system transforms a 4-minute user interview into a market-grounded, adversar
 ---
 
 > **📌 INPUTS STILL NEEDED FROM YOU BEFORE SUBMITTING:**
-> 1. `[YOUR_VERCEL_URL]` — your deployed frontend URL (Vercel)
-> 2. `[YOUR_RENDER_URL]` — your deployed backend URL (Render)
-> 3. YouTube video link for the Media Gallery (required for submission)
-> 4. Cover image for the Kaggle Media Gallery (required to submit the writeup)
+> 1. YouTube video link for the Media Gallery (required for submission)
+> 2. Cover image for the Kaggle Media Gallery (required to submit the writeup)

@@ -85,7 +85,7 @@
 ## 📝 Recording Checklist
 
 - [ ] Backend running (locally or on Render) before you start recording
-- [ ] Frontend open in browser — use the Vercel URL if deployed
+- [ ] Frontend open in browser — use https://adk.meghasara.me/
 - [ ] Demo preset buttons tested — make sure one works end-to-end before recording
 - [ ] `GOOGLE_API_KEY` is set and working
 - [ ] Screen resolution set clearly (1080p preferred)
